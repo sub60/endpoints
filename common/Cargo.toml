@@ -1,0 +1,22 @@
+[package]
+name = "sub60-endpoints-common"
+version.workspace = true
+edition.workspace = true
+
+[features]
+axum = ["dep:axum", "sub60-endpoints-macros/axum"]
+
+[dependencies]
+axum = { workspace = true, optional = true }
+cauchy = { workspace = true }
+const_format = { workspace = true }
+derive_more = { workspace = true, features = ["display"] }
+http = { workspace = true }
+percent-encoding = { workspace = true }
+schemars = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+smol_str = { workspace = true, features = ["serde"] }
+sub60-endpoints-macros = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,36 @@
+name: test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  tests:
+    name: tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Nix
+        uses: NixOS/nix-installer-action@main
+      - name: Setup SSH keys for private flake inputs
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.NOIB3_NIX_JETTISON_SSH_KEY }}
+      - name: Setup Nix cache
+        uses: sub60/setup-cache@main
+      - name: Build the tests
+        run: |
+          tests=$(nix build --accept-flake-config --no-link --print-out-paths .#tests)
+          echo "TESTS=$tests" >> "$GITHUB_ENV"
+      - name: Run the tests
+        run: >-
+          nix run --accept-flake-config --inputs-from . nixpkgs#cargo-nextest --
+          nextest run
+          --binaries-metadata "$TESTS/nextest/binaries-metadata.json"
+          --cargo-metadata "$TESTS/nextest/cargo-metadata.json"
+          --workspace-remap .

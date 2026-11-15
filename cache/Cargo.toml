@@ -1,0 +1,23 @@
+[package]
+name = "sub60-endpoints-cache"
+version.workspace = true
+edition.workspace = true
+
+[features]
+axum = ["dep:axum", "sub60-endpoints-common/axum"]
+
+[dependencies]
+axum = { workspace = true, optional = true }
+cauchy = { workspace = true }
+derive_more = { workspace = true, features = ["as_ref", "display"] }
+http = { workspace = true }
+nix-types = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+smallvec = { workspace = true, features = ["serde"] }
+smol_str = { workspace = true, features = ["serde"] }
+sub60-endpoints-common = { workspace = true }
+url = { workspace = true, features = ["serde"] }
+
+[lints]
+workspace = true

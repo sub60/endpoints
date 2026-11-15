@@ -1,0 +1,21 @@
+[package]
+name = "sub60-endpoints-macros"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true, features = ["full"] }
+
+[dev-dependencies]
+sub60-endpoints-common = { workspace = true, features = ["axum"] }
+
+[features]
+axum = []
+
+[lints]
+workspace = true

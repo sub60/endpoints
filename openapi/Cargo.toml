@@ -1,0 +1,13 @@
+[package]
+name = "sub60-endpoints-openapi"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+schemars = { workspace = true }
+serde_json = { workspace = true }
+sub60-endpoints-api = { workspace = true }
+sub60-endpoints-common = { workspace = true }
+
+[lints]
+workspace = true

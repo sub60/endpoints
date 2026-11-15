@@ -1,0 +1,15 @@
+[package]
+name = "sub60-endpoints-api"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+derive_more = { workspace = true, features = ["display"] }
+http = { workspace = true }
+schemars = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+sub60-endpoints-common = { workspace = true }
+
+[lints]
+workspace = true

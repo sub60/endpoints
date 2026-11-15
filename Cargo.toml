@@ -1,0 +1,64 @@
+[workspace]
+members = ["api", "cache", "common", "common/macros", "nix-types", "openapi"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+
+[workspace.dependencies]
+# 3rd-party dependencies.
+axum = { version = "0.8", default-features = false }
+base64 = "0.23"
+cauchy = { git = "https://github.com/nomad/cauchy.git" }
+const_format = "0.2"
+derive_more = { version = "2", default-features = false }
+ed25519-dalek = "3"
+http = "1"
+memchr = "2"
+percent-encoding = "2"
+proc-macro2 = "1"
+quote = "1"
+rand_core = "0.10"
+schemars = "1"
+serde = "1"
+serde_json = "1"
+smallvec = "1"
+smol_str = "0.3"
+syn = "3"
+url = "2"
+
+# Internal dependencies.
+nix-types = { path = "./nix-types" }
+sub60-endpoints-api = { path = "./api" }
+sub60-endpoints-common = { path = "./common" }
+sub60-endpoints-macros = { path = "./common/macros" }
+
+[workspace.lints.clippy]
+alloc_instead_of_core = "warn"
+bool_to_int_with_if = "deny"
+cognitive_complexity = "deny"
+let_underscore_future = "allow"
+module_inception = "allow"
+needless_collect = "deny"
+same_name_method = "deny"
+std_instead_of_core = "warn"
+too_many_arguments = "deny"
+too_many_lines = "deny"
+trivially_copy_pass_by_ref = "warn"
+undocumented_unsafe_blocks = "deny"
+unwrap_used = "deny"
+use_self = "warn"
+wildcard_dependencies = "deny"
+wildcard_imports = "warn"
+
+[workspace.lints.rust]
+future_incompatible = { level = "deny", priority = -1 }
+missing_docs = "deny"
+nonstandard_style = { level = "deny", priority = -1 }
+refining_impl_trait = { level = "allow", priority = -1 }
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(coverage)"] }
+
+[workspace.lints.rustdoc]
+broken_intra_doc_links = "deny"
+private_intra_doc_links = "deny"
