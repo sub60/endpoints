@@ -711,7 +711,6 @@ dependencies = [
  "http",
  "schemars",
  "serde",
- "serde_json",
  "sub60-endpoints-common",
 ]
 
@@ -725,7 +724,6 @@ dependencies = [
  "http",
  "nix-types",
  "serde",
- "serde_json",
  "smallvec",
  "smol_str",
  "sub60-endpoints-common",

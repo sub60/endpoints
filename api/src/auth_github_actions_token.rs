@@ -1,7 +1,5 @@
 //! The `POST /v1/auth/github/actions/token` endpoint.
 
-use core::fmt;
-use core::str::FromStr;
 use core::time::Duration;
 
 use http::{Method, StatusCode};
@@ -108,27 +106,3 @@ impl From<Error> for StatusCode {
     }
 }
 
-macro_rules! impl_json_display_and_from_str {
-    ($ty:ty) => {
-        impl fmt::Display for $ty {
-            #[inline]
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                let json =
-                    serde_json::to_string(self).map_err(|_| fmt::Error)?;
-                f.write_str(&json)
-            }
-        }
-
-        impl FromStr for $ty {
-            type Err = serde_json::Error;
-
-            #[inline]
-            fn from_str(s: &str) -> Result<Self, Self::Err> {
-                serde_json::from_str(s)
-            }
-        }
-    };
-}
-
-impl_json_display_and_from_str!(Request);
-impl_json_display_and_from_str!(Response);

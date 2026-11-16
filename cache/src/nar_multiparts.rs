@@ -1,13 +1,10 @@
 //! The `POST /{account}/{cache}/nar-multiparts` endpoint.
 
-use core::fmt;
 use core::num::{NonZeroU32, NonZeroU64};
-use core::str::FromStr;
 use core::time::Duration;
 
 use http::Method;
 use smallvec::SmallVec;
-use sub60_endpoints_common::FmtWrite;
 
 use crate::{CachePath, PathParams};
 
@@ -52,46 +49,6 @@ pub struct ResponseBody {
     /// elapsed time since the UNIX epoch.
     #[serde(with = "sub60_endpoints_common::serde_utils::secs")]
     pub expiration_ts: Duration,
-}
-
-/// The type of error that can occur when parsing a string into a
-/// [`RequestBody`].
-pub type RequestBodyFromStrError = serde_json::Error;
-
-/// The type of error that can occur when parsing a string into a
-/// [`ResponseBody`].
-pub type ResponseBodyFromStrError = serde_json::Error;
-
-impl fmt::Display for RequestBody {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        serde_json::to_writer(FmtWrite(f), self).map_err(|_| fmt::Error)
-    }
-}
-
-impl FromStr for RequestBody {
-    type Err = RequestBodyFromStrError;
-
-    #[inline]
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        serde_json::from_str(s)
-    }
-}
-
-impl fmt::Display for ResponseBody {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        serde_json::to_writer(FmtWrite(f), &self).map_err(|_| fmt::Error)
-    }
-}
-
-impl FromStr for ResponseBody {
-    type Err = ResponseBodyFromStrError;
-
-    #[inline]
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        serde_json::from_str(s)
-    }
 }
 
 impl crate::Endpoint for Endpoint {

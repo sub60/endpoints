@@ -40,3 +40,21 @@ jobs:
         uses: sub60/setup-cache@main
       - name: Check formatting
         run: nix run --accept-flake-config .#check-formatting
+
+  openapi-schemas:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Nix
+        uses: NixOS/nix-installer-action@main
+      - name: Setup SSH keys for private flake inputs
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.NOIB3_NIX_JETTISON_SSH_KEY }}
+      - name: Setup Nix cache
+        uses: sub60/setup-cache@main
+      - name: Build the OpenAPI document of api.sub60.dev
+        run: nix build --accept-flake-config --no-link .#openapi-api

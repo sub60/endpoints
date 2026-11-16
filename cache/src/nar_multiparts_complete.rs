@@ -1,12 +1,8 @@
 //! The `POST /{account}/{cache}/nar-multiparts/{upload_id}/complete` endpoint.
 
-use core::fmt;
-use core::str::FromStr;
-
 use http::{Method, StatusCode};
 use nix_types::Nix32Digest;
 use smallvec::SmallVec;
-use sub60_endpoints_common::FmtWrite;
 
 use crate::nar_multiparts::UploadId;
 use crate::{CachePath, Etag, PathParams};
@@ -54,46 +50,6 @@ pub struct RequestBody {
 pub struct ResponseBody {
     /// The SHA-256 hash of the uploaded NAR.
     pub file_hash: Nix32Digest<32>,
-}
-
-/// The type of error that can occur when parsing a string into a
-/// [`RequestBody`].
-pub type RequestBodyFromStrError = serde_json::Error;
-
-/// The type of error that can occur when parsing a string into a
-/// [`ResponseBody`].
-pub type ResponseBodyFromStrError = serde_json::Error;
-
-impl fmt::Display for RequestBody {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        serde_json::to_writer(FmtWrite(f), self).map_err(|_| fmt::Error)
-    }
-}
-
-impl FromStr for RequestBody {
-    type Err = RequestBodyFromStrError;
-
-    #[inline]
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        serde_json::from_str(s)
-    }
-}
-
-impl fmt::Display for ResponseBody {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        serde_json::to_writer(FmtWrite(f), self).map_err(|_| fmt::Error)
-    }
-}
-
-impl FromStr for ResponseBody {
-    type Err = ResponseBodyFromStrError;
-
-    #[inline]
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        serde_json::from_str(s)
-    }
 }
 
 impl crate::Endpoint for Endpoint {
