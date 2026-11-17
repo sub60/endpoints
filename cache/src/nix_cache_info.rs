@@ -1,4 +1,6 @@
 //! The `GET /{account}/{cache}/nix-cache-info` endpoint.
+//!
+//! Gets a cache's `nix-cache-info`.
 
 use http::Method;
 use nix_types::NixCacheInfo;
@@ -6,8 +8,8 @@ use smol_str::SmolStr;
 
 use crate::{CachePath, PathParams};
 
-/// Gets a cache's `nix-cache-info`.
 #[derive(Debug, Copy, Clone)]
+#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
@@ -19,8 +21,8 @@ pub struct Path {
     pub cache: CachePath,
 }
 
-/// The response to the endpoint's requests.
 #[derive(Debug, PartialEq, Eq)]
+#[expect(missing_docs)]
 pub struct Response(pub NixCacheInfo<SmolStr>);
 
 impl crate::Endpoint for Endpoint {

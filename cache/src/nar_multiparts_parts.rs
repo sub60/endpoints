@@ -1,4 +1,6 @@
 //! The `POST /{account}/{cache}/nar-multiparts/{upload_id}/parts` endpoint.
+//!
+//! Gets the URLs to upload some parts of a multipart upload to.
 
 use core::num::NonZeroU16;
 use core::time::Duration;
@@ -10,8 +12,8 @@ use url::Url;
 use crate::nar_multiparts::UploadId;
 use crate::{CachePath, PathParams};
 
-/// Gets the URLs to upload some parts of a multipart upload to.
 #[derive(Debug, Copy, Clone)]
+#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
@@ -26,16 +28,16 @@ pub struct Path<Id = UploadId> {
     pub upload_id: Id,
 }
 
-/// The body of a `/nar-multiparts/{uploadId}/parts` request.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[expect(missing_docs)]
 pub struct RequestBody {
     /// The list of part numbers to request upload URLs for. The numbers can be
     /// in any order, but there shouldn't be any duplicates.
     pub part_numbers: SmallVec<[NonZeroU16; 8]>,
 }
 
-/// The body of a `/nar-multiparts/{uploadId}/parts` response.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[expect(missing_docs)]
 pub struct ResponseBody {
     /// The pre-signed URLs whose order matches the one of the
     /// [part numbers](RequestBody::part_numbers) in the

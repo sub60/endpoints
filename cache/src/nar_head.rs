@@ -1,12 +1,14 @@
 //! The `HEAD /{account}/{cache}/nar/{nar_file_name}` endpoint.
+//!
+//! Checks whether a NAR exists.
 
 use http::{Method, StatusCode};
 use nix_types::NarFileName;
 
 use crate::{CachePath, PathParams};
 
-/// Checks whether a NAR exists.
 #[derive(Debug, Copy, Clone)]
+#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
@@ -21,8 +23,8 @@ pub struct Path {
     pub nar_file_name: NarFileName,
 }
 
-/// The response to the endpoint's requests.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[expect(missing_docs)]
 pub enum Response {
     /// The NAR exists.
     Exists,

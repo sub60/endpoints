@@ -1,4 +1,6 @@
 //! The `POST /v1/auth/github/actions/token` endpoint.
+//!
+//! Exchanges the OIDC token of a GitHub Actions job for a token.
 
 use core::time::Duration;
 
@@ -6,8 +8,8 @@ use http::{Method, StatusCode};
 
 use crate::{EndpointError, JsonEndpoint, PathParams, V1Path};
 
-/// Exchanges the OIDC token of a GitHub Actions job for a token.
 #[derive(Debug, Copy, Clone)]
+#[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
@@ -17,7 +19,6 @@ pub struct Path {
     pub v1: V1Path,
 }
 
-/// The body of the endpoint's requests.
 #[derive(
     Debug,
     Clone,
@@ -28,13 +29,13 @@ pub struct Path {
     schemars::JsonSchema,
 )]
 #[schemars(rename = "GitHubActionsAuthRequest")]
+#[expect(missing_docs)]
 pub struct Request {
     /// The OIDC token the job got from GitHub, requested with the server's
     /// origin as its audience.
     pub token: String,
 }
 
-/// The body of the endpoint's successful responses.
 #[derive(
     Debug,
     Clone,
@@ -45,6 +46,7 @@ pub struct Request {
     schemars::JsonSchema,
 )]
 #[schemars(rename = "GitHubActionsAuthResponse")]
+#[expect(missing_docs)]
 pub struct Response {
     /// The token to authenticate requests with, as a bearer token in their
     /// `Authorization` header.

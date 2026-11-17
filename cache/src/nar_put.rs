@@ -1,28 +1,27 @@
 //! The `PUT /{account}/{cache}/nar/{nar_file_name}` endpoint.
+//!
+//! Uploads a NAR.
+//!
+//! The server refuses NARs whose SHA-256 hash isn't the one in their file name
+//! with a `400 Bad Request`.
 
 use http::{Method, StatusCode};
 
 use crate::nar_head;
 
-/// Uploads a NAR.
-///
-/// The server refuses NARs whose SHA-256 hash isn't the one in their file name
-/// with a `400 Bad Request`.
 #[derive(Debug, Copy, Clone)]
+#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
 pub type Path = nar_head::Path;
 
-/// The body of the endpoint's requests, i.e. the NAR's bytes.
-///
-/// It's only a marker, since clients stream the NAR instead of building it
-/// in memory.
 #[derive(Debug, Copy, Clone)]
+#[expect(missing_docs)]
 pub struct RequestBody;
 
-/// The response to the endpoint's requests.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[expect(missing_docs)]
 pub enum Response {
     /// The NAR was stored.
     Created,

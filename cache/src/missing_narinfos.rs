@@ -1,4 +1,9 @@
 //! The `POST /{account}/{cache}/missing-narinfos` endpoint.
+//!
+//! Returns which of the given NARInfos the cache doesn't have.
+//!
+//! It answers what a `HEAD` request for each of the NARInfos would, in a single
+//! request.
 
 use core::str::FromStr;
 use core::{fmt, ops};
@@ -19,11 +24,8 @@ pub type RequestBody = StoreHashes;
 /// order they were requested.
 pub type ResponseBody = StoreHashes;
 
-/// Returns which of the given NARInfos the cache doesn't have.
-///
-/// It answers what a `HEAD` request for each of the NARInfos would, in a single
-/// request.
 #[derive(Debug, Copy, Clone)]
+#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.

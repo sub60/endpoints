@@ -1,12 +1,14 @@
 //! The `GET /{account}/{cache}/{narinfo_file_name}` endpoint.
+//!
+//! Gets a NARInfo.
 
 use http::{Method, StatusCode};
 use nix_types::{NarInfo, NarInfoFileName};
 
 use crate::{CachePath, PathParams};
 
-/// Gets a NARInfo.
 #[derive(Debug, Copy, Clone)]
+#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
@@ -21,9 +23,9 @@ pub struct Path {
     pub narinfo_file_name: NarInfoFileName,
 }
 
-/// The response to the endpoint's requests.
 #[derive(Debug, PartialEq, Eq)]
 #[expect(clippy::large_enum_variant)]
+#[expect(missing_docs)]
 pub enum Response {
     /// The NARInfo, signed with the cache's key.
     Found(NarInfo<String>),

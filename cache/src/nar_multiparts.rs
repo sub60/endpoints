@@ -1,4 +1,6 @@
 //! The `POST /{account}/{cache}/nar-multiparts` endpoint.
+//!
+//! Starts a multipart upload of a NAR.
 
 use core::num::{NonZeroU32, NonZeroU64};
 use core::time::Duration;
@@ -8,8 +10,8 @@ use smallvec::SmallVec;
 
 use crate::{CachePath, PathParams};
 
-/// Starts a multipart upload of a NAR.
 #[derive(Debug, Copy, Clone)]
+#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
@@ -24,15 +26,15 @@ pub struct Path {
 /// The ID of a multipart upload.
 pub type UploadId = String;
 
-/// The body of a `/nar-multiparts` request.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[expect(missing_docs)]
 pub struct RequestBody {
     /// The size of the NAR being uploaded, in bytes.
     pub file_size: NonZeroU64,
 }
 
-/// The body of a `/nar-multiparts` response.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[expect(missing_docs)]
 pub struct ResponseBody {
     /// TODO: docs.
     pub upload_id: UploadId,

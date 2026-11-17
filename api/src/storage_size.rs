@@ -1,11 +1,13 @@
 //! The `GET /v1/storage-size` endpoint.
+//!
+//! Gets the number of bytes stored across all caches.
 
 use http::{Method, StatusCode};
 
 use crate::{EndpointError, JsonEndpoint, PathParams, V1Path};
 
-/// Gets the number of bytes stored across all caches.
 #[derive(Debug, Copy, Clone)]
+#[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]

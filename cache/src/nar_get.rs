@@ -1,15 +1,17 @@
 //! The `GET /{account}/{cache}/nar/{nar_file_name}` endpoint.
+//!
+//! Gets a NAR.
+//!
+//! Clients only download NARs from here if the cache's NARInfos point to it,
+//! which they do with a `URL` of `nar/{nar_file_name}`.
 
 use http::{Method, StatusCode};
 use nix_types::NarFileName;
 
 use crate::{CachePath, PathParams};
 
-/// Gets a NAR.
-///
-/// Clients only download NARs from here if the cache's NARInfos point to it,
-/// which they do with a `URL` of `nar/{nar_file_name}`.
 #[derive(Debug, Copy, Clone)]
+#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
@@ -24,8 +26,8 @@ pub struct Path {
     pub nar_file_name: NarFileName,
 }
 
-/// The response to the endpoint's requests.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[expect(missing_docs)]
 pub enum Response {
     /// The NAR exists, and it's in the response's body.
     Found,

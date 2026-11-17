@@ -1,4 +1,6 @@
 //! The `POST /{account}/{cache}/nar-multiparts/{upload_id}/complete` endpoint.
+//!
+//! Completes a multipart upload.
 
 use http::{Method, StatusCode};
 use nix_types::Nix32Digest;
@@ -7,8 +9,8 @@ use smallvec::SmallVec;
 use crate::nar_multiparts::UploadId;
 use crate::{CachePath, Etag, PathParams};
 
-/// Completes a multipart upload.
 #[derive(Debug, Copy, Clone)]
+#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
@@ -23,8 +25,8 @@ pub struct Path<Id = UploadId> {
     pub upload_id: Id,
 }
 
-/// The response to the endpoint's requests.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[expect(missing_docs)]
 pub enum Response {
     /// The NAR was stored.
     Created(ResponseBody),
@@ -34,8 +36,8 @@ pub enum Response {
     AlreadyExists(ResponseBody),
 }
 
-/// The body of a `/nar-multiparts/{uploadId}/complete` request.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[expect(missing_docs)]
 pub struct RequestBody {
     /// The list of [`Etag`]s returned by the `UploadPart` requests to the
     /// cache's object storage.
@@ -45,8 +47,8 @@ pub struct RequestBody {
     pub etags: SmallVec<[Etag; 8]>,
 }
 
-/// The body of a `/nar-multiparts/{uploadId}/complete` response.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[expect(missing_docs)]
 pub struct ResponseBody {
     /// The SHA-256 hash of the uploaded NAR.
     pub file_hash: Nix32Digest<32>,

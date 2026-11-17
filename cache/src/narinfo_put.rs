@@ -1,21 +1,23 @@
 //! The `PUT /{account}/{cache}/{narinfo_file_name}` endpoint.
+//!
+//! Uploads a NARInfo.
+//!
+//! Its NAR must already have been uploaded.
 
 use http::{Method, StatusCode};
 use nix_types::NarInfo;
 
 use crate::narinfo_get;
 
-/// Uploads a NARInfo.
-///
-/// Its NAR must already have been uploaded.
 #[derive(Debug, Copy, Clone)]
+#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
 pub type Path = narinfo_get::Path;
 
-/// The response to the endpoint's requests.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[expect(missing_docs)]
 pub enum Response {
     /// The NARInfo was stored.
     Created,
