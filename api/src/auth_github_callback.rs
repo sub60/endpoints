@@ -103,6 +103,10 @@ pub enum Error {
     #[display("GitHub refused to exchange the code")]
     InvalidCode,
 
+    /// The GitHub user's primary email address isn't verified.
+    #[display("the GitHub user's primary email address isn't verified")]
+    NoVerifiedEmail,
+
     /// GitHub couldn't be reached, or answered with an unexpected response.
     #[display("the request to GitHub failed")]
     #[serde(rename = "github_unavailable")]
@@ -131,6 +135,7 @@ impl From<Error> for StatusCode {
     fn from(error: Error) -> Self {
         match error {
             Error::InvalidCode => Self::BAD_REQUEST,
+            Error::NoVerifiedEmail => Self::FORBIDDEN,
             Error::GitHubUnavailable => Self::BAD_GATEWAY,
             Error::Internal => Self::INTERNAL_SERVER_ERROR,
         }

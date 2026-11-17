@@ -9,7 +9,8 @@ use smol_str::SmolStr;
 ///
 /// Valid names are between 1 and [`MAX_LEN`](Self::MAX_LEN) bytes long, and can
 /// only contain ASCII letters and digits, `-` and `_`. They must start with a
-/// letter or a digit.
+/// letter or a digit, and can't be one of the [reserved](Self::RESERVED)
+/// names.
 ///
 /// Names keep the casing they were created with (e.g. `NixOS`). Two names that
 /// only differ in casing are considered equal as far as [`PartialEq`] and
@@ -53,6 +54,10 @@ pub enum AccountNameFromStrError {
         /// The offset of the invalid character.
         offset: usize,
     },
+
+    /// The account name is one of the [reserved](AccountName::RESERVED) names.
+    #[display("Account name '{_0}' is reserved")]
+    Reserved(SmolStr),
 }
 
 impl AccountName {
