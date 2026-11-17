@@ -105,6 +105,7 @@ pub enum Error {
 
     /// GitHub couldn't be reached, or answered with an unexpected response.
     #[display("the request to GitHub failed")]
+    #[serde(rename = "github_unavailable")]
     GitHubUnavailable,
 
     /// The server failed to log the user in.
