@@ -64,6 +64,69 @@ impl AccountName {
     /// The maximum length of an account name, in bytes.
     pub const MAX_LEN: usize = 64;
 
+    /// The list of reserved account names.
+    pub const RESERVED: &[&str] = &[
+        "about",
+        "account",
+        "accounts",
+        "admin",
+        "api",
+        "app",
+        "apps",
+        "auth",
+        "billing",
+        "blog",
+        "cache",
+        "caches",
+        "careers",
+        "changelog",
+        "community",
+        "contact",
+        "dashboard",
+        "docs",
+        "download",
+        "downloads",
+        "enterprise",
+        "explore",
+        "faq",
+        "features",
+        "feedback",
+        "help",
+        "home",
+        "invite",
+        "invites",
+        "jobs",
+        "join",
+        "legal",
+        "login",
+        "logout",
+        "new",
+        "news",
+        "notifications",
+        "org",
+        "organization",
+        "organizations",
+        "orgs",
+        "pricing",
+        "privacy",
+        "profile",
+        "register",
+        "search",
+        "security",
+        "settings",
+        "signin",
+        "signout",
+        "signup",
+        "staff",
+        "status",
+        "support",
+        "team",
+        "teams",
+        "terms",
+        "user",
+        "users",
+    ];
+
     fn validate(s: &str) -> Result<(), AccountNameFromStrError> {
         if s.is_empty() {
             return Err(AccountNameFromStrError::Empty);
@@ -89,6 +152,16 @@ impl AccountName {
                     offset,
                 });
             }
+        }
+
+        let is_reserved = Self::RESERVED
+            .binary_search_by(|reserved| {
+                reserved.bytes().cmp(s.bytes().map(|b| b.to_ascii_lowercase()))
+            })
+            .is_ok();
+
+        if is_reserved {
+            return Err(AccountNameFromStrError::Reserved(SmolStr::new(s)));
         }
 
         Ok(())
@@ -193,6 +266,24 @@ mod tests {
         for s in ["a-", "a_", "foo-bar_baz", "0foo"] {
             assert!(s.parse::<AccountName>().is_ok(), "{s}");
         }
+    }
+
+    #[test]
+    fn cannot_be_reserved() {
+        for s in ["login", "Settings", "API"] {
+            assert_eq!(
+                s.parse::<AccountName>().unwrap_err(),
+                AccountNameFromStrError::Reserved(s.into()),
+                "{s}",
+            );
+        }
+    }
+
+    #[test]
+    fn reserved_names_are_lowercase_and_sorted() {
+        let names = AccountName::RESERVED;
+        assert!(names.iter().all(|name| *name == name.to_ascii_lowercase()));
+        assert!(names.is_sorted(), "{names:?}");
     }
 
     #[test]
