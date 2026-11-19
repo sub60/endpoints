@@ -1,11 +1,13 @@
 //! The `GET /accounts` endpoint.
 //!
-//! Lists the accounts the request's principal has access to, or looks one up by
-//! name.
+//! Lists the accounts the request's principal has access to, sorted by name.
+
+use core::num::NonZeroU16;
 
 use http::Method;
 use sub60_endpoints_common::{
     AccountName,
+    Cursor,
     Json,
     Ok,
     PathParams,
@@ -26,7 +28,6 @@ pub struct Path;
 #[derive(
     Debug,
     Clone,
-    Default,
     PartialEq,
     Eq,
     serde::Serialize,
@@ -36,6 +37,9 @@ pub struct Path;
 pub struct Query {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<AccountName>,
+    pub limit: NonZeroU16,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cursor: Option<Cursor>,
 }
 
 #[derive(
@@ -50,6 +54,7 @@ pub struct Query {
 #[schemars(rename = "AccountList")]
 pub struct Response {
     pub accounts: Vec<Account>,
+    pub next_cursor: Option<Cursor>,
 }
 
 #[derive(
@@ -63,6 +68,7 @@ pub struct Response {
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
     Unauthorized(error::Unauthorized),
+    InvalidCursor(error::InvalidCursor),
     Internal(error::Internal),
 }
 
