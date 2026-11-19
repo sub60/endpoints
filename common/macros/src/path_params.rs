@@ -70,6 +70,7 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
     let mut path_parts = Vec::new();
     let mut write_stmts = Vec::new();
     let mut parse_stmts = Vec::new();
+    let mut schema_stmts = Vec::new();
     let mut field_idents = Vec::new();
 
     for segment in &segments {
@@ -100,6 +101,12 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
                 parse_stmts.push(quote_spanned! {span=>
                     let #ident: #ty =
                         <#ty as #krate::PathParams>::parse(params)?;
+                });
+                schema_stmts.push(quote_spanned! {span=>
+                    <#ty as #krate::PathParams>::param_schemas(
+                        generator,
+                        schemas,
+                    );
                 });
                 field_idents.push(ident.clone());
             },
@@ -148,6 +155,13 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
                                     #name,
                                 )?;
                             });
+                            let ty = &field.ty;
+                            schema_stmts.push(quote_spanned! {ty.span()=>
+                                schemas.push((
+                                    #name,
+                                    generator.subschema_for::<#ty>(),
+                                ));
+                            });
                             field_idents.push(ident.clone());
                         },
                     }
@@ -161,6 +175,11 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
             field_ident(field),
             "this field isn't in the path",
         ));
+    }
+
+    // A struct without parameters doesn't use the arguments.
+    if schema_stmts.is_empty() {
+        schema_stmts.push(quote!(let _ = (generator, schemas);));
     }
 
     let name = &input.ident;
@@ -212,6 +231,16 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
             ) -> ::core::result::Result<Self, #krate::PathParamsError> {
                 #(#parse_stmts)*
                 ::core::result::Result::Ok(Self { #(#field_idents),* })
+            }
+
+            fn param_schemas(
+                generator: &mut #krate::__private::schemars::SchemaGenerator,
+                schemas: &mut ::std::vec::Vec<(
+                    &'static str,
+                    #krate::__private::schemars::Schema,
+                )>,
+            ) {
+                #(#schema_stmts)*
             }
         }
 
@@ -316,6 +345,9 @@ fn with_param_bounds(generics: &Generics) -> Generics {
         });
         where_clause.predicates.push(parse_quote! {
             <#param as ::core::str::FromStr>::Err: ::core::fmt::Display
+        });
+        where_clause.predicates.push(parse_quote! {
+            #param: ::sub60_endpoints_common::__private::schemars::JsonSchema
         });
     }
 

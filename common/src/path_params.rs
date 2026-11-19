@@ -32,6 +32,13 @@ pub trait PathParams: Sized {
         params: &mut impl Iterator<Item = (&'a str, &'a str)>,
     ) -> Result<Self, PathParamsError>;
 
+    /// Appends each parameter's name and schema to `schemas`, in the order
+    /// they appear in the path.
+    fn param_schemas(
+        generator: &mut schemars::SchemaGenerator,
+        schemas: &mut Vec<(&'static str, schemars::Schema)>,
+    );
+
     /// Returns the path with the parameters filled in, each percent-encoded.
     #[inline]
     fn to_path(&self) -> String {
@@ -74,6 +81,7 @@ pub mod __private {
     pub use ::axum;
     pub use const_format::concatcp;
     pub use http::StatusCode;
+    pub use schemars;
 
     #[cfg(feature = "axum")]
     pub use super::extract::from_request_parts;

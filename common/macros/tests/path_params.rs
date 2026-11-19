@@ -117,3 +117,16 @@ fn parse_rejects_invalid_values() {
         Err(PathParamsError::Invalid { name: "line", .. })
     ));
 }
+
+#[test]
+fn param_schemas_are_the_fields_schemas_in_order() {
+    let mut generator = schemars::SchemaGenerator::default();
+    let mut schemas = Vec::new();
+    FilePath::<u64>::param_schemas(&mut generator, &mut schemas);
+
+    let names = schemas.iter().map(|(name, _)| *name).collect::<Vec<_>>();
+    assert_eq!(names, ["owner", "name", "file_id", "line"]);
+
+    assert_eq!(schemas[2].1.get("type"), Some(&"integer".into()));
+    assert_eq!(schemas[3].1.get("type"), Some(&"integer".into()));
+}

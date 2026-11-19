@@ -51,3 +51,18 @@ impl<'de> serde::de::Deserialize<'de> for NarInfoFileName {
             .map_err(serde::de::Error::custom)
     }
 }
+
+#[cfg(feature = "schemars")]
+impl schemars::JsonSchema for NarInfoFileName {
+    fn schema_name() -> Cow<'static, str> {
+        "NarInfoFileName".into()
+    }
+
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "description": "A NARInfo file's name, e.g. `….narinfo`.",
+            "type": "string",
+            "pattern": "^[0-9a-df-np-sv-z]{32}\\.narinfo$",
+        })
+    }
+}

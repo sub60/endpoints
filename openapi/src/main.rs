@@ -13,6 +13,7 @@ use sub60_endpoints_common::{
     Endpoint,
     EndpointVisitor,
     Json,
+    PathParams,
     Request,
     RequestError,
     Response,
@@ -142,16 +143,17 @@ impl EndpointVisitor for OpenApiBuilder {
     fn visit<E: Endpoint>(&mut self) {
         let mut operation = Map::new();
 
-        // Each `{name}` segment of the path's template is a parameter.
-        let mut parameters = E::PATH
-            .split('/')
-            .filter_map(|segment| segment.strip_prefix('{')?.strip_suffix('}'))
-            .map(|name| {
+        let mut path_params = Vec::new();
+        E::Path::param_schemas(&mut self.requests, &mut path_params);
+
+        let mut parameters = path_params
+            .into_iter()
+            .map(|(name, schema)| {
                 json!({
                     "name": name,
                     "in": "path",
                     "required": true,
-                    "schema": { "type": "string" },
+                    "schema": schema,
                 })
             })
             .collect::<Vec<_>>();

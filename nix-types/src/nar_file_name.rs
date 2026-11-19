@@ -103,6 +103,21 @@ impl<'de> serde::de::Deserialize<'de> for NarFileName {
     }
 }
 
+#[cfg(feature = "schemars")]
+impl schemars::JsonSchema for NarFileName {
+    fn schema_name() -> Cow<'static, str> {
+        "NarFileName".into()
+    }
+
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "description": "A NAR file's name, e.g. `….nar.xz`.",
+            "type": "string",
+            "pattern": "^[0-9a-df-np-sv-z]{52}\\.nar(\\.(bz2|gz|xz|zst))?$",
+        })
+    }
+}
+
 impl<NarUrl> From<&NarInfo<NarUrl>> for NarFileName {
     fn from(narinfo: &NarInfo<NarUrl>) -> Self {
         Self {
