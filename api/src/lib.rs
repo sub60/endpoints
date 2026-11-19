@@ -3,6 +3,7 @@
 extern crate alloc;
 
 mod account;
+pub mod account_name_get;
 pub mod auth_github_actions_token;
 pub mod auth_github_callback;
 pub mod auth_github_login;
@@ -18,6 +19,7 @@ pub use id::{AccountId, CacheId, IdFromStrError, UserId};
 pub fn visit_endpoints<V: sub60_endpoints_common::EndpointVisitor>(
     visitor: &mut V,
 ) {
+    visitor.visit::<account_name_get::Endpoint>();
     visitor.visit::<auth_github_actions_token::Endpoint>();
     visitor.visit::<auth_github_callback::Endpoint>();
     visitor.visit::<auth_github_login::Endpoint>();

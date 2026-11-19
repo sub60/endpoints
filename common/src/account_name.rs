@@ -20,7 +20,17 @@ pub struct AccountName(SmolStr);
 
 /// The type of error that can occur when parsing a string into a
 /// [`AccountName`].
-#[derive(Debug, PartialEq, Eq, derive_more::Display, cauchy::Error)]
+#[derive(
+    Debug,
+    PartialEq,
+    Eq,
+    derive_more::Display,
+    cauchy::Error,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+#[serde(tag = "code", content = "details", rename_all = "snake_case")]
 pub enum AccountNameFromStrError {
     /// The string was empty.
     #[display("Account name cannot be empty")]
@@ -57,7 +67,7 @@ pub enum AccountNameFromStrError {
 
     /// The account name is one of the [reserved](AccountName::RESERVED) names.
     #[display("Account name '{_0}' is reserved")]
-    Reserved(SmolStr),
+    Reserved(#[schemars(with = "String")] SmolStr),
 }
 
 impl AccountName {
