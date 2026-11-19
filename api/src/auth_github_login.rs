@@ -5,7 +5,7 @@
 
 use http::{Method, StatusCode};
 
-use crate::{EndpointError, JsonEndpoint, PathParams, V1Path};
+use crate::{PathParams, V1Path};
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
@@ -81,16 +81,11 @@ pub enum Error {
 impl crate::Endpoint for Endpoint {
     const METHOD: Method = Method::POST;
 
+    type Error = Error;
     type Path = Path;
     type Request = Request;
     type Response = Response;
 }
-
-impl JsonEndpoint for Endpoint {
-    type Error = Error;
-}
-
-impl EndpointError for Error {}
 
 impl From<Error> for StatusCode {
     fn from(error: Error) -> Self {

@@ -8,7 +8,7 @@
 use core::str::FromStr;
 use core::{fmt, ops};
 
-use http::Method;
+use http::{Method, StatusCode};
 use nix_types::{StoreHash, StoreHashFromStrError};
 
 use crate::{CachePath, PathParams};
@@ -56,6 +56,7 @@ pub struct StoreHashesFromStrError {
 impl crate::Endpoint for Endpoint {
     const METHOD: Method = Method::POST;
 
+    type Error = StatusCode;
     type Path = Path;
     type Request = RequestBody;
     type Response = ResponseBody;

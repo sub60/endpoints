@@ -5,7 +5,7 @@
 use core::num::NonZeroU16;
 use core::time::Duration;
 
-use http::Method;
+use http::{Method, StatusCode};
 use smallvec::SmallVec;
 use url::Url;
 
@@ -54,6 +54,7 @@ pub struct ResponseBody {
 impl crate::Endpoint for Endpoint {
     const METHOD: Method = Method::POST;
 
+    type Error = StatusCode;
     type Path = Path;
     type Request = RequestBody;
     type Response = ResponseBody;

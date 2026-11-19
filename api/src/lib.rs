@@ -11,9 +11,9 @@ pub use sub60_endpoints_common::{
     CacheName,
     CacheNameFromStrError,
     Endpoint,
-    EndpointError,
     EndpointVisitor,
     JsonEndpoint,
+    JsonEndpointVisitor,
     PathParams,
     PathParamsError,
     RequestError,
@@ -25,7 +25,7 @@ pub use sub60_endpoints_common::{
 pub struct V1Path;
 
 /// Calls the visitor on each of the API's endpoints.
-pub fn visit_endpoints<V: EndpointVisitor>(visitor: &mut V) {
+pub fn visit_endpoints<V: JsonEndpointVisitor>(visitor: &mut V) {
     visitor.visit::<auth_github_actions_token::Endpoint>();
     visitor.visit::<auth_github_callback::Endpoint>();
     visitor.visit::<auth_github_login::Endpoint>();

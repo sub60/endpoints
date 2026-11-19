@@ -2,7 +2,7 @@
 //!
 //! Gets a cache's `nix-cache-info`.
 
-use http::Method;
+use http::{Method, StatusCode};
 use nix_types::NixCacheInfo;
 use smol_str::SmolStr;
 
@@ -28,6 +28,7 @@ pub struct Response(pub NixCacheInfo<SmolStr>);
 impl crate::Endpoint for Endpoint {
     const METHOD: Method = Method::GET;
 
+    type Error = StatusCode;
     type Path = Path;
     type Request = ();
     type Response = Response;

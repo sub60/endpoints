@@ -27,6 +27,7 @@ pub use sub60_endpoints_common::{
     CacheName,
     CacheNameFromStrError,
     Endpoint,
+    EndpointVisitor,
     PathParams,
     PathParamsError,
 };
@@ -41,4 +42,19 @@ pub struct CachePath {
 
     /// The cache's name.
     pub cache: CacheName,
+}
+
+/// Calls the visitor on each of the cache's endpoints.
+pub fn visit_endpoints<V: EndpointVisitor>(visitor: &mut V) {
+    visitor.visit::<missing_narinfos::Endpoint>();
+    visitor.visit::<nar_get::Endpoint>();
+    visitor.visit::<nar_head::Endpoint>();
+    visitor.visit::<nar_multiparts::Endpoint>();
+    visitor.visit::<nar_multiparts_complete::Endpoint>();
+    visitor.visit::<nar_multiparts_parts::Endpoint>();
+    visitor.visit::<nar_put::Endpoint>();
+    visitor.visit::<narinfo_get::Endpoint>();
+    visitor.visit::<narinfo_head::Endpoint>();
+    visitor.visit::<narinfo_put::Endpoint>();
+    visitor.visit::<nix_cache_info::Endpoint>();
 }

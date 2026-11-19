@@ -5,7 +5,7 @@
 use core::num::{NonZeroU32, NonZeroU64};
 use core::time::Duration;
 
-use http::Method;
+use http::{Method, StatusCode};
 use smallvec::SmallVec;
 
 use crate::{CachePath, PathParams};
@@ -56,6 +56,7 @@ pub struct ResponseBody {
 impl crate::Endpoint for Endpoint {
     const METHOD: Method = Method::POST;
 
+    type Error = StatusCode;
     type Path = Path;
     type Request = RequestBody;
     type Response = ResponseBody;

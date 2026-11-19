@@ -72,10 +72,10 @@
           inherit (workspaces.${system}) members;
         in
         {
-          # The OpenAPI document of `api.sub60.dev`.
           openapi-api = pkgs.runCommandLocal "sub60-api-openapi.json" { } ''
             ${pkgs.lib.getExe members.sub60-endpoints-openapi.build} api > "$out"
           '';
+          print-route-tree = members.sub60-endpoints-route-tree.build;
           tests = (workspaces.${system}.build.override { tests = true; }).tests;
         }
       );

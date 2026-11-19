@@ -29,6 +29,7 @@ pub enum Response {
 impl crate::Endpoint for Endpoint {
     const METHOD: Method = Method::PUT;
 
+    type Error = StatusCode;
     type Path = Path;
     type Request = NarInfo<String>;
     type Response = Response;

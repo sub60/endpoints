@@ -57,6 +57,7 @@ pub struct ResponseBody {
 impl crate::Endpoint for Endpoint {
     const METHOD: Method = Method::POST;
 
+    type Error = StatusCode;
     type Path = Path;
     type Request = RequestBody;
     type Response = Response;

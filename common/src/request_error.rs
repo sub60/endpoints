@@ -1,15 +1,4 @@
-use core::fmt;
-
 use http::StatusCode;
-
-/// The error type of a [`JsonEndpoint`](crate::JsonEndpoint).
-///
-/// It's serialized with its `code`, and its `details` if it has any, next to a
-/// `message` made from its `Display`. Its status code is the response's.
-pub trait EndpointError:
-    fmt::Display + serde::Serialize + schemars::JsonSchema + Into<StatusCode>
-{
-}
 
 /// The ways a request can fail before it reaches an endpoint, e.g. when its
 /// path matches no endpoint.

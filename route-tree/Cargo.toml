@@ -1,0 +1,13 @@
+[package]
+name = "sub60-endpoints-route-tree"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+http = { workspace = true }
+sub60-endpoints-api = { workspace = true }
+sub60-endpoints-cache = { workspace = true }
+sub60-endpoints-common = { workspace = true }
+
+[lints]
+workspace = true

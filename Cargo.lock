@@ -767,6 +767,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "sub60-endpoints-route-tree"
+version = "0.1.0"
+dependencies = [
+ "http",
+ "sub60-endpoints-api",
+ "sub60-endpoints-cache",
+ "sub60-endpoints-common",
+]
+
+[[package]]
 name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

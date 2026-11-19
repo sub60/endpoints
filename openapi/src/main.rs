@@ -8,7 +8,7 @@ use schemars::generate::{Contract, SchemaGenerator, SchemaSettings};
 use schemars::{JsonSchema, Schema};
 use serde_json::map::Entry;
 use serde_json::{Map, Value, json};
-use sub60_endpoints_common::{EndpointVisitor, JsonEndpoint, RequestError};
+use sub60_endpoints_common::{JsonEndpoint, JsonEndpointVisitor, RequestError};
 
 const DOMAINS: &[Domain] = &[Domain {
     name: "api",
@@ -134,7 +134,7 @@ impl OpenApiBuilder {
     }
 }
 
-impl EndpointVisitor for OpenApiBuilder {
+impl JsonEndpointVisitor for OpenApiBuilder {
     #[expect(clippy::too_many_lines)]
     fn visit<E: JsonEndpoint>(&mut self) {
         let mut operation = Map::new();
