@@ -4,6 +4,7 @@ members = [
   "cache",
   "common",
   "common/macros",
+  "endpoints",
   "nix-types",
   "openapi",
   "route-tree",

@@ -1,6 +1,7 @@
 //! TODO: docs.
 
 mod path_params;
+mod response;
 
 use proc_macro::TokenStream;
 use syn::parse_macro_input;
@@ -27,6 +28,15 @@ use syn::parse_macro_input;
 pub fn path_params(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
     path_params::expand(input)
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
+}
+
+/// TODO: docs.
+#[proc_macro_derive(Response)]
+pub fn response(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as syn::DeriveInput);
+    response::expand(input)
         .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }

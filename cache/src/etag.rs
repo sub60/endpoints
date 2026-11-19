@@ -81,6 +81,19 @@ impl<'de> serde::de::Deserialize<'de> for Etag {
     }
 }
 
+impl schemars::JsonSchema for Etag {
+    fn schema_name() -> Cow<'static, str> {
+        "Etag".into()
+    }
+
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "type": "string",
+            "pattern": "^[0-9A-Fa-f]{32}$",
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

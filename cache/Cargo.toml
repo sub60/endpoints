@@ -12,6 +12,7 @@ cauchy = { workspace = true }
 derive_more = { workspace = true, features = ["as_ref", "display"] }
 http = { workspace = true }
 nix-types = { workspace = true }
+schemars = { workspace = true, features = ["smallvec1", "url2"] }
 serde = { workspace = true, features = ["derive"] }
 smallvec = { workspace = true, features = ["serde"] }
 smol_str = { workspace = true, features = ["serde"] }

@@ -5,9 +5,10 @@
 use http::{Method, StatusCode};
 use nix_types::Nix32Digest;
 use smallvec::SmallVec;
+use sub60_endpoints_common::{Created, Json, Ok, PathParams, WithStatus};
 
 use crate::nar_multiparts::UploadId;
-use crate::{CachePath, Etag, PathParams};
+use crate::{CachePath, Etag};
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
@@ -25,18 +26,26 @@ pub struct Path<Id = UploadId> {
     pub upload_id: Id,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, sub60_endpoints_common::Response)]
 #[expect(missing_docs)]
 pub enum Response {
     /// The NAR was stored.
-    Created(ResponseBody),
+    Created(Created<Json<ResponseBody>>),
 
     /// The NAR already existed, e.g. because another upload of it completed
     /// first, and this upload was discarded.
-    AlreadyExists(ResponseBody),
+    AlreadyExists(Ok<Json<ResponseBody>>),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
 #[expect(missing_docs)]
 pub struct RequestBody {
     /// The list of [`Etag`]s returned by the `UploadPart` requests to the
@@ -47,19 +56,28 @@ pub struct RequestBody {
     pub etags: SmallVec<[Etag; 8]>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
 #[expect(missing_docs)]
 pub struct ResponseBody {
     /// The SHA-256 hash of the uploaded NAR.
+    #[schemars(with = "String")]
     pub file_hash: Nix32Digest<32>,
 }
 
-impl crate::Endpoint for Endpoint {
+impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::POST;
 
     type Error = StatusCode;
     type Path = Path;
-    type Request = RequestBody;
+    type Request = Json<RequestBody>;
     type Response = Response;
 }
 
@@ -68,16 +86,8 @@ impl Response {
     #[inline]
     pub fn body(&self) -> &ResponseBody {
         match self {
-            Self::Created(body) | Self::AlreadyExists(body) => body,
-        }
-    }
-
-    /// Returns the response's status code.
-    #[inline]
-    pub fn status_code(&self) -> StatusCode {
-        match self {
-            Self::Created(_) => StatusCode::CREATED,
-            Self::AlreadyExists(_) => StatusCode::OK,
+            Self::Created(WithStatus(Json(body)))
+            | Self::AlreadyExists(WithStatus(Json(body))) => body,
         }
     }
 }

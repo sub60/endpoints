@@ -10,5 +10,8 @@ schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 sub60-endpoints-common = { workspace = true }
 
+[dev-dependencies]
+serde_json = { workspace = true }
+
 [lints]
 workspace = true

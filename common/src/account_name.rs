@@ -220,6 +220,15 @@ impl Deref for AccountName {
     }
 }
 
+impl serde::Serialize for AccountName {
+    fn serialize<S: serde::Serializer>(
+        &self,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&self.0)
+    }
+}
+
 impl<'de> serde::de::Deserialize<'de> for AccountName {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -228,6 +237,21 @@ impl<'de> serde::de::Deserialize<'de> for AccountName {
         let s = SmolStr::deserialize(deserializer)?;
         Self::validate(&s).map_err(serde::de::Error::custom)?;
         Ok(Self(s))
+    }
+}
+
+impl schemars::JsonSchema for AccountName {
+    fn schema_name() -> alloc::borrow::Cow<'static, str> {
+        "AccountName".into()
+    }
+
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "type": "string",
+            "minLength": 1,
+            "maxLength": Self::MAX_LEN,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+        })
     }
 }
 

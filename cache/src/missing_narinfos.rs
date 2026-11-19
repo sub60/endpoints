@@ -10,8 +10,9 @@ use core::{fmt, ops};
 
 use http::{Method, StatusCode};
 use nix_types::{StoreHash, StoreHashFromStrError};
+use sub60_endpoints_common::{Body, Ok, PathParams};
 
-use crate::{CachePath, PathParams};
+use crate::CachePath;
 
 /// The maximum number of store hashes in a request.
 pub const MAX_STORE_HASHES: usize = 10_000;
@@ -53,13 +54,13 @@ pub struct StoreHashesFromStrError {
     pub error: StoreHashFromStrError,
 }
 
-impl crate::Endpoint for Endpoint {
+impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::POST;
 
     type Error = StatusCode;
     type Path = Path;
     type Request = RequestBody;
-    type Response = ResponseBody;
+    type Response = Ok<ResponseBody>;
 }
 
 impl fmt::Display for StoreHashes {
@@ -95,6 +96,15 @@ impl FromStr for StoreHashes {
             })
             .collect::<Result<_, _>>()
             .map(Self)
+    }
+}
+
+impl Body for StoreHashes {
+    const MEDIA_TYPE: Option<&'static str> = Some("text/plain; charset=utf-8");
+
+    #[inline]
+    fn schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({ "type": "string" })
     }
 }
 

@@ -3,6 +3,7 @@
 //! Checks whether a NARInfo exists.
 
 use http::{Method, StatusCode};
+use sub60_endpoints_common::{NotFound, Ok};
 
 use crate::narinfo_get;
 
@@ -13,32 +14,23 @@ pub struct Endpoint;
 /// The path parameters of the endpoint's requests.
 pub type Path = narinfo_get::Path;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, sub60_endpoints_common::Response,
+)]
 #[expect(missing_docs)]
 pub enum Response {
     /// The NARInfo exists.
-    Exists,
+    Exists(Ok),
 
     /// The NARInfo doesn't exist.
-    NotFound,
+    NotFound(NotFound),
 }
 
-impl crate::Endpoint for Endpoint {
+impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::HEAD;
 
     type Error = StatusCode;
     type Path = Path;
     type Request = ();
     type Response = Response;
-}
-
-impl Response {
-    /// Returns the response's status code.
-    #[inline]
-    pub fn status_code(&self) -> StatusCode {
-        match self {
-            Self::Exists => StatusCode::OK,
-            Self::NotFound => StatusCode::NOT_FOUND,
-        }
-    }
 }

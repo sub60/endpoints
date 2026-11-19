@@ -1,22 +1,19 @@
-//! The `POST /v1/auth/github/login` endpoint.
+//! The `POST /auth/github/login` endpoint.
 //!
 //! This endpoint is used to start logging in with GitHub, and it returns the
 //! URL of GitHub's page asking the person to authorize sub60.
 
 use http::{Method, StatusCode};
-
-use crate::{PathParams, V1Path};
+use sub60_endpoints_common::{Json, JsonError, Ok, PathParams};
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
-#[route(V1Path + "/auth/github/login")]
+#[route("/auth/github/login")]
 #[expect(missing_docs)]
-pub struct Path {
-    pub v1: V1Path,
-}
+pub struct Path;
 
 #[derive(
     Debug,
@@ -78,13 +75,13 @@ pub enum Error {
     InvalidRedirectUri,
 }
 
-impl crate::Endpoint for Endpoint {
+impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::POST;
 
-    type Error = Error;
+    type Error = JsonError<Error>;
     type Path = Path;
-    type Request = Request;
-    type Response = Response;
+    type Request = Json<Request>;
+    type Response = Ok<Json<Response>>;
 }
 
 impl From<Error> for StatusCode {

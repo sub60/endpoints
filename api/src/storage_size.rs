@@ -1,21 +1,18 @@
-//! The `GET /v1/storage-size` endpoint.
+//! The `GET /storage-size` endpoint.
 //!
 //! Gets the number of bytes stored across all caches.
 
 use http::{Method, StatusCode};
-
-use crate::{PathParams, V1Path};
+use sub60_endpoints_common::{Json, JsonError, Ok, PathParams};
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
-#[route(V1Path + "/storage-size")]
+#[route("/storage-size")]
 #[expect(missing_docs)]
-pub struct Path {
-    pub v1: V1Path,
-}
+pub struct Path;
 
 #[derive(Debug, PartialEq, Eq, serde::Serialize, schemars::JsonSchema)]
 #[schemars(rename = "StorageSizeResponse")]
@@ -38,13 +35,13 @@ pub enum Error {
     Internal,
 }
 
-impl crate::Endpoint for Endpoint {
+impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::GET;
 
-    type Error = Error;
+    type Error = JsonError<Error>;
     type Path = Path;
     type Request = ();
-    type Response = Response;
+    type Response = Ok<Json<Response>>;
 }
 
 impl From<Error> for StatusCode {

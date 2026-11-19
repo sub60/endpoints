@@ -1,14 +1,23 @@
 //! Prints the OpenAPI 3.1 document describing the sub60 domain named by its
 //! first argument.
 
-use core::any::{self, TypeId};
 use std::{env, process};
 
+use http::StatusCode;
+use schemars::JsonSchema;
 use schemars::generate::{Contract, SchemaGenerator, SchemaSettings};
-use schemars::{JsonSchema, Schema};
 use serde_json::map::Entry;
 use serde_json::{Map, Value, json};
-use sub60_endpoints_common::{JsonEndpoint, JsonEndpointVisitor, RequestError};
+use sub60_endpoints_common::{
+    Body,
+    Endpoint,
+    EndpointVisitor,
+    JsonError,
+    Request,
+    RequestError,
+    Response,
+    ResponseVisitor,
+};
 
 const DOMAINS: &[Domain] = &[Domain {
     name: "api",
@@ -92,55 +101,40 @@ struct OpenApiBuilder {
     paths: Map<String, Value>,
 }
 
+struct ResponsesBuilder<'a> {
+    generator: &'a mut SchemaGenerator,
+    responses: &'a mut Map<String, Value>,
+}
+
 impl OpenApiBuilder {
-    /// Returns the schema of the error type.
-    fn error_schema<T: JsonSchema>(&mut self) -> Schema {
-        let schema = self.responses.subschema_for::<T>();
-
-        let definitions = self.responses.definitions();
-
-        // The schema is usually a reference to the type's definition.
-        let resolved = schema
-            .get("$ref")
-            .and_then(Value::as_str)
-            .and_then(|path| path.strip_prefix("#/components/schemas/"))
-            .and_then(|name| definitions.get(name))
-            .unwrap_or_else(|| schema.as_value());
-
-        let variants = match resolved.get("oneOf") {
-            Some(Value::Array(variants)) => variants.iter().collect(),
-            _ => vec![resolved],
-        };
-
-        for variant in variants {
-            let has_code = variant
-                .pointer("/properties/code/const")
-                .is_some_and(Value::is_string)
-                && variant
-                    .get("required")
-                    .and_then(Value::as_array)
-                    .is_some_and(|required| required.contains(&json!("code")));
-
-            assert!(
-                has_code,
-                "a variant of `{}` isn't serialized with a constant `code` \
-                 string, add `#[serde(tag = \"code\", content = \
-                 \"details\")]` to it",
-                any::type_name::<T>(),
-            );
-        }
-
+    fn query_parameters<Q: JsonSchema>(&mut self) -> Vec<Value> {
+        let schema = Q::json_schema(&mut self.requests);
+        let required = schema.get("required").and_then(Value::as_array);
         schema
+            .get("properties")
+            .and_then(Value::as_object)
+            .into_iter()
+            .flatten()
+            .map(|(name, schema)| {
+                json!({
+                    "name": name,
+                    "in": "query",
+                    "required": required.is_some_and(|required| {
+                        required.contains(&json!(name))
+                    }),
+                    "schema": schema,
+                })
+            })
+            .collect()
     }
 }
 
-impl JsonEndpointVisitor for OpenApiBuilder {
-    #[expect(clippy::too_many_lines)]
-    fn visit<E: JsonEndpoint>(&mut self) {
+impl EndpointVisitor for OpenApiBuilder {
+    fn visit<E: Endpoint>(&mut self) {
         let mut operation = Map::new();
 
         // Each `{name}` segment of the path's template is a parameter.
-        let parameters = E::PATH
+        let mut parameters = E::PATH
             .split('/')
             .filter_map(|segment| segment.strip_prefix('{')?.strip_suffix('}'))
             .map(|name| {
@@ -153,64 +147,44 @@ impl JsonEndpointVisitor for OpenApiBuilder {
             })
             .collect::<Vec<_>>();
 
+        parameters
+            .extend(self.query_parameters::<<E::Request as Request>::Query>());
+
         if !parameters.is_empty() {
             operation.insert("parameters".to_owned(), parameters.into());
         }
 
-        if TypeId::of::<E::Request>() != TypeId::of::<()>() {
+        if let Some(content) =
+            body_content::<<E::Request as Request>::Body>(&mut self.requests)
+        {
             operation.insert(
                 "requestBody".to_owned(),
-                json!({
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": self.requests.subschema_for::<E::Request>(),
-                        },
-                    },
-                }),
+                json!({ "required": true, "content": content }),
             );
         }
 
-        operation.insert(
-            "responses".to_owned(),
-            json!({
-                "200": {
-                    "description": "The request succeeded.",
-                    "content": {
-                        "application/json": {
-                            "schema": self.responses.subschema_for::<E::Response>(),
-                        },
-                    },
-                },
-                "default": {
-                    "description": "The request failed.",
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "allOf": [
-                                    {
-                                        "anyOf": [
-                                            self.error_schema::<E::Error>(),
-                                            self.error_schema::<RequestError>(),
-                                        ],
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "message": {
-                                                "description": "What went wrong, as a sentence for people.",
-                                                "type": "string",
-                                            },
-                                        },
-                                        "required": ["message"],
-                                    },
-                                ],
-                            },
-                        },
-                    },
-                },
-            }),
-        );
+        let mut failure = json!({ "description": "The request failed." });
+
+        if let Some(media_type) = E::Error::MEDIA_TYPE {
+            let schema = json!({
+                "anyOf": [
+                    E::Error::schema(&mut self.responses),
+                    JsonError::<RequestError>::schema(&mut self.responses),
+                ],
+            });
+            failure["content"] = content(media_type, schema);
+        }
+
+        let mut responses = Map::new();
+
+        responses.insert("default".to_owned(), failure);
+
+        E::Response::visit(&mut ResponsesBuilder {
+            generator: &mut self.responses,
+            responses: &mut responses,
+        });
+
+        operation.insert("responses".to_owned(), responses.into());
 
         let path_item = self
             .paths
@@ -224,4 +198,38 @@ impl JsonEndpointVisitor for OpenApiBuilder {
             );
         }
     }
+}
+
+impl ResponseVisitor for ResponsesBuilder<'_> {
+    fn visit<B: Body>(&mut self, status: StatusCode) {
+        let description = if status.is_success() {
+            "The request succeeded."
+        } else {
+            status.canonical_reason().unwrap_or("The request didn't succeed.")
+        };
+
+        let mut response = json!({ "description": description });
+
+        if let Some(content) = body_content::<B>(self.generator) {
+            response["content"] = content;
+        }
+
+        let previous =
+            self.responses.insert(status.as_str().to_owned(), response);
+
+        assert!(
+            previous.is_none(),
+            "an endpoint has two responses with status code {status}",
+        );
+    }
+}
+
+fn body_content<B: Body>(generator: &mut SchemaGenerator) -> Option<Value> {
+    B::MEDIA_TYPE.map(|media_type| content(media_type, B::schema(generator)))
+}
+
+fn content(media_type: &str, schema: impl serde::Serialize) -> Value {
+    let mut content = Map::new();
+    content.insert(media_type.to_owned(), json!({ "schema": schema }));
+    content.into()
 }

@@ -1,4 +1,4 @@
-//! The `POST /v1/auth/github/callback` endpoint.
+//! The `POST /auth/github/callback` endpoint.
 //!
 //! This endpoint is used to finish logging in with GitHub, once GitHub has
 //! redirected the browser back with a `code`.
@@ -6,19 +6,16 @@
 use core::time::Duration;
 
 use http::{Method, StatusCode};
-
-use crate::{PathParams, V1Path};
+use sub60_endpoints_common::{Json, JsonError, Ok, PathParams};
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
-#[route(V1Path + "/auth/github/callback")]
+#[route("/auth/github/callback")]
 #[expect(missing_docs)]
-pub struct Path {
-    pub v1: V1Path,
-}
+pub struct Path;
 
 #[derive(
     Debug,
@@ -117,13 +114,13 @@ pub enum Error {
     Internal,
 }
 
-impl crate::Endpoint for Endpoint {
+impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::POST;
 
-    type Error = Error;
+    type Error = JsonError<Error>;
     type Path = Path;
-    type Request = Request;
-    type Response = Response;
+    type Request = Json<Request>;
+    type Response = Ok<Json<Response>>;
 }
 
 impl From<Error> for StatusCode {

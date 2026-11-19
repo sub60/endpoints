@@ -7,10 +7,11 @@ use core::time::Duration;
 
 use http::{Method, StatusCode};
 use smallvec::SmallVec;
+use sub60_endpoints_common::{Json, Ok, PathParams};
 use url::Url;
 
+use crate::CachePath;
 use crate::nar_multiparts::UploadId;
-use crate::{CachePath, PathParams};
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
@@ -28,7 +29,15 @@ pub struct Path<Id = UploadId> {
     pub upload_id: Id,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
 #[expect(missing_docs)]
 pub struct RequestBody {
     /// The list of part numbers to request upload URLs for. The numbers can be
@@ -36,7 +45,15 @@ pub struct RequestBody {
     pub part_numbers: SmallVec<[NonZeroU16; 8]>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
 #[expect(missing_docs)]
 pub struct ResponseBody {
     /// The pre-signed URLs whose order matches the one of the
@@ -48,14 +65,15 @@ pub struct ResponseBody {
     /// The expiration timestamp of this batch of upload URLs, expressed as the
     /// elapsed time since the UNIX epoch.
     #[serde(with = "sub60_endpoints_common::serde_utils::secs")]
+    #[schemars(with = "u64")]
     pub expiration_ts: Duration,
 }
 
-impl crate::Endpoint for Endpoint {
+impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::POST;
 
     type Error = StatusCode;
     type Path = Path;
-    type Request = RequestBody;
-    type Response = ResponseBody;
+    type Request = Json<RequestBody>;
+    type Response = Ok<Json<ResponseBody>>;
 }

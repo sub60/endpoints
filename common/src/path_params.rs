@@ -73,6 +73,7 @@ pub mod __private {
     #[cfg(feature = "axum")]
     pub use ::axum;
     pub use const_format::concatcp;
+    pub use http::StatusCode;
 
     #[cfg(feature = "axum")]
     pub use super::extract::from_request_parts;

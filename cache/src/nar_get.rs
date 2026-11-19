@@ -7,8 +7,9 @@
 
 use http::{Method, StatusCode};
 use nix_types::NarFileName;
+use sub60_endpoints_common::{NotFound, Ok, PathParams};
 
-use crate::{CachePath, PathParams};
+use crate::{CachePath, NarBody};
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
@@ -26,32 +27,23 @@ pub struct Path {
     pub nar_file_name: NarFileName,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, sub60_endpoints_common::Response,
+)]
 #[expect(missing_docs)]
 pub enum Response {
     /// The NAR exists, and it's in the response's body.
-    Found,
+    Found(Ok<NarBody>),
 
     /// The NAR doesn't exist.
-    NotFound,
+    NotFound(NotFound),
 }
 
-impl crate::Endpoint for Endpoint {
+impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::GET;
 
     type Error = StatusCode;
     type Path = Path;
     type Request = ();
     type Response = Response;
-}
-
-impl Response {
-    /// Returns the response's status code.
-    #[inline]
-    pub fn status_code(&self) -> StatusCode {
-        match self {
-            Self::Found => StatusCode::OK,
-            Self::NotFound => StatusCode::NOT_FOUND,
-        }
-    }
 }

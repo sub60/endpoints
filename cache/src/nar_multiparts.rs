@@ -7,8 +7,9 @@ use core::time::Duration;
 
 use http::{Method, StatusCode};
 use smallvec::SmallVec;
+use sub60_endpoints_common::{Json, Ok, PathParams};
 
-use crate::{CachePath, PathParams};
+use crate::CachePath;
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
@@ -26,14 +27,30 @@ pub struct Path {
 /// The ID of a multipart upload.
 pub type UploadId = String;
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
 #[expect(missing_docs)]
 pub struct RequestBody {
     /// The size of the NAR being uploaded, in bytes.
     pub file_size: NonZeroU64,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
 #[expect(missing_docs)]
 pub struct ResponseBody {
     /// TODO: docs.
@@ -50,14 +67,15 @@ pub struct ResponseBody {
     /// The expiration timestamp of this batch of upload URLs, expressed as the
     /// elapsed time since the UNIX epoch.
     #[serde(with = "sub60_endpoints_common::serde_utils::secs")]
+    #[schemars(with = "u64")]
     pub expiration_ts: Duration,
 }
 
-impl crate::Endpoint for Endpoint {
+impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::POST;
 
     type Error = StatusCode;
     type Path = Path;
-    type Request = RequestBody;
-    type Response = ResponseBody;
+    type Request = Json<RequestBody>;
+    type Response = Ok<Json<ResponseBody>>;
 }

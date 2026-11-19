@@ -19,17 +19,12 @@ pub mod narinfo_put;
 pub mod nix_cache_info;
 
 pub use etag::{Etag, EtagFromStrError};
-#[cfg(feature = "axum")]
-pub use sub60_endpoints_common::PathParamsRejection;
-pub use sub60_endpoints_common::{
+use sub60_endpoints_common::{
     AccountName,
-    AccountNameFromStrError,
+    Body,
     CacheName,
-    CacheNameFromStrError,
-    Endpoint,
     EndpointVisitor,
     PathParams,
-    PathParamsError,
 };
 
 /// The path parameters identifying a cache, which the paths of all the cache's
@@ -42,6 +37,19 @@ pub struct CachePath {
 
     /// The cache's name.
     pub cache: CacheName,
+}
+
+/// The body of a request or response holding a NAR.
+#[derive(Debug, Copy, Clone, Default, PartialEq, Eq)]
+pub struct NarBody;
+
+impl Body for NarBody {
+    const MEDIA_TYPE: Option<&'static str> = Some("application/x-nix-nar");
+
+    #[inline]
+    fn schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({ "type": "string", "format": "binary" })
+    }
 }
 
 /// Calls the visitor on each of the cache's endpoints.

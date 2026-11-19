@@ -4,8 +4,9 @@
 
 use http::{Method, StatusCode};
 use nix_types::{NarInfo, NarInfoFileName};
+use sub60_endpoints_common::{Body, NotFound, Ok, PathParams};
 
-use crate::{CachePath, PathParams};
+use crate::CachePath;
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
@@ -23,18 +24,22 @@ pub struct Path {
     pub narinfo_file_name: NarInfoFileName,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, sub60_endpoints_common::Response)]
 #[expect(clippy::large_enum_variant)]
 #[expect(missing_docs)]
 pub enum Response {
     /// The NARInfo, signed with the cache's key.
-    Found(NarInfo<String>),
+    Found(Ok<NarInfoBody>),
 
     /// The NARInfo doesn't exist.
-    NotFound,
+    NotFound(NotFound),
 }
 
-impl crate::Endpoint for Endpoint {
+/// The body of a request or response holding a NARInfo.
+#[derive(Debug, PartialEq, Eq)]
+pub struct NarInfoBody(pub NarInfo<String>);
+
+impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::GET;
 
     type Error = StatusCode;
@@ -43,35 +48,24 @@ impl crate::Endpoint for Endpoint {
     type Response = Response;
 }
 
-impl Response {
-    /// Returns the response's status code.
+impl Body for NarInfoBody {
+    const MEDIA_TYPE: Option<&'static str> = Some("text/x-nix-narinfo");
+
     #[inline]
-    pub fn status_code(&self) -> StatusCode {
-        match self {
-            Self::Found(_) => StatusCode::OK,
-            Self::NotFound => StatusCode::NOT_FOUND,
-        }
+    fn schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({ "type": "string" })
     }
 }
 
 #[cfg(feature = "axum")]
-impl axum::response::IntoResponse for Response {
+impl axum::response::IntoResponse for NarInfoBody {
     fn into_response(self) -> axum::response::Response {
         use axum::http::{HeaderValue, header};
 
         const CONTENT_TYPE: HeaderValue =
             HeaderValue::from_static("text/x-nix-narinfo");
 
-        let status_code = self.status_code();
-
-        match self {
-            Self::Found(narinfo) => (
-                status_code,
-                [(header::CONTENT_TYPE, CONTENT_TYPE)],
-                narinfo.to_string(),
-            )
-                .into_response(),
-            Self::NotFound => status_code.into_response(),
-        }
+        ([(header::CONTENT_TYPE, CONTENT_TYPE)], self.0.to_string())
+            .into_response()
     }
 }

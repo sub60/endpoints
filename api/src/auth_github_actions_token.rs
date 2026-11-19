@@ -1,23 +1,20 @@
-//! The `POST /v1/auth/github/actions/token` endpoint.
+//! The `POST /auth/github/actions/token` endpoint.
 //!
 //! Exchanges the OIDC token of a GitHub Actions job for a token.
 
 use core::time::Duration;
 
 use http::{Method, StatusCode};
-
-use crate::{PathParams, V1Path};
+use sub60_endpoints_common::{Json, JsonError, Ok, PathParams};
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
-#[route(V1Path + "/auth/github/actions/token")]
+#[route("/auth/github/actions/token")]
 #[expect(missing_docs)]
-pub struct Path {
-    pub v1: V1Path,
-}
+pub struct Path;
 
 #[derive(
     Debug,
@@ -84,13 +81,13 @@ pub enum Error {
     Internal,
 }
 
-impl crate::Endpoint for Endpoint {
+impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::POST;
 
-    type Error = Error;
+    type Error = JsonError<Error>;
     type Path = Path;
-    type Request = Request;
-    type Response = Response;
+    type Request = Json<Request>;
+    type Response = Ok<Json<Response>>;
 }
 
 impl From<Error> for StatusCode {
