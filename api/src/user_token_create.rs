@@ -41,7 +41,7 @@ pub struct Request {
 pub struct Response {
     #[serde(flatten)]
     pub token: UserToken,
-    pub token_text: String,
+    pub secret: String,
 }
 
 #[derive(
