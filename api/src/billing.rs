@@ -90,6 +90,10 @@ pub enum PaidPlan {
     schemars::JsonSchema,
 )]
 pub struct NextInvoice {
+    /// The plan the next invoice is for. This differs from the
+    /// [current plan](`Subscription::Active::plan`) when downgrading to a less
+    /// expensive paid plan.
+    pub plan: PaidPlan,
     pub amount: Money,
     pub charged_at: Timestamp,
 }
@@ -127,4 +131,20 @@ pub enum PaymentMethod {
         expiration_month: u8,
         expiration_year: u16,
     },
+}
+
+/// A charge waiting for the customer to confirm it with Stripe
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+pub struct ChargeConfirmation {
+    /// The client secret of the Stripe PaymentIntent the charge is confirmed
+    /// with.
+    pub client_secret: String,
 }
