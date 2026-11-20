@@ -2,10 +2,8 @@
 //!
 //! Exchanges the OIDC token of a GitHub Actions job for a token.
 
-use core::time::Duration;
-
 use http::{Method, StatusCode};
-use sub60_endpoints_common::{Json, JsonError, Ok, PathParams};
+use sub60_endpoints_common::{Json, JsonError, Ok, PathParams, Timestamp};
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
@@ -49,11 +47,8 @@ pub struct Response {
     /// `Authorization` header.
     pub token: String,
 
-    /// When the token stops being valid, as the number of seconds since the
-    /// UNIX epoch.
-    #[serde(with = "sub60_endpoints_common::serde_utils::secs")]
-    #[schemars(with = "u64")]
-    pub expires_at: Duration,
+    /// The time the token stops being valid.
+    pub expires_at: Timestamp,
 }
 
 #[derive(

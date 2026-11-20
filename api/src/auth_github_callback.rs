@@ -3,10 +3,8 @@
 //! This endpoint is used to finish logging in with GitHub, once GitHub has
 //! redirected the browser back with a `code`.
 
-use core::time::Duration;
-
 use http::{Method, StatusCode};
-use sub60_endpoints_common::{Json, JsonError, Ok, PathParams};
+use sub60_endpoints_common::{Json, JsonError, Ok, PathParams, Timestamp};
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
@@ -52,11 +50,8 @@ pub struct Response {
     /// The token the client will use to authenticate the user's requests.
     pub token: String,
 
-    /// The token's expiration date as the number of seconds since the UNIX
-    /// epoch.
-    #[serde(with = "sub60_endpoints_common::serde_utils::secs")]
-    #[schemars(with = "u64")]
-    pub expires_at: Duration,
+    /// The time the token stops being valid.
+    pub expires_at: Timestamp,
 
     /// What the login did.
     pub outcome: LoginOutcome,

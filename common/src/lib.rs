@@ -13,8 +13,7 @@ mod permission;
 mod request;
 mod request_error;
 mod response;
-#[doc(hidden)]
-pub mod serde_utils;
+mod timestamp;
 
 pub use account_name::{AccountName, AccountNameFromStrError};
 pub use body::{Body, Json, JsonError};
@@ -38,3 +37,4 @@ pub use response::{
     ResponseVisitor,
     WithStatus,
 };
+pub use timestamp::Timestamp;

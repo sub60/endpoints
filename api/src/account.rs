@@ -1,6 +1,4 @@
-use core::time::Duration;
-
-use sub60_endpoints_common::{AccountName, Permission};
+use sub60_endpoints_common::{AccountName, Permission, Timestamp};
 
 use crate::AccountId;
 
@@ -18,11 +16,8 @@ pub struct Account {
     pub id: AccountId,
     pub name: AccountName,
     pub kind: AccountKind,
-    /// The time the account was created, as the number of seconds since the
-    /// UNIX epoch.
-    #[serde(with = "sub60_endpoints_common::serde_utils::secs")]
-    #[schemars(with = "u64")]
-    pub created_at: Duration,
+    /// The time the account was created.
+    pub created_at: Timestamp,
     /// The permissions the request's principal has on the account.
     pub my_permissions: Vec<Permission>,
 }

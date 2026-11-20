@@ -3,11 +3,10 @@
 //! Gets the URLs to upload some parts of a multipart upload to.
 
 use core::num::NonZeroU16;
-use core::time::Duration;
 
 use http::{Method, StatusCode};
 use smallvec::SmallVec;
-use sub60_endpoints_common::{Json, Ok, PathParams};
+use sub60_endpoints_common::{Json, Ok, PathParams, Timestamp};
 use url::Url;
 
 use crate::CachePath;
@@ -62,11 +61,8 @@ pub struct ResponseBody {
     /// the second URL is for the part number item, and so on.
     pub urls: SmallVec<[Url; 8]>,
 
-    /// The expiration timestamp of this batch of upload URLs, expressed as the
-    /// elapsed time since the UNIX epoch.
-    #[serde(with = "sub60_endpoints_common::serde_utils::secs")]
-    #[schemars(with = "u64")]
-    pub expiration_ts: Duration,
+    /// The time the upload URLs stop being valid.
+    pub expiration_ts: Timestamp,
 }
 
 impl sub60_endpoints_common::Endpoint for Endpoint {
