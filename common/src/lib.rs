@@ -7,6 +7,7 @@ extern crate alloc;
 mod account_name;
 mod body;
 mod cache_name;
+mod cursor;
 mod endpoint;
 pub mod error;
 mod path_params;
@@ -19,6 +20,7 @@ mod timestamp;
 pub use account_name::{AccountName, AccountNameFromStrError};
 pub use body::{Body, Json, WithMessage};
 pub use cache_name::{CacheName, CacheNameFromStrError};
+pub use cursor::Cursor;
 pub use endpoint::{Endpoint, EndpointVisitor};
 pub use error::Error;
 #[doc(hidden)]
