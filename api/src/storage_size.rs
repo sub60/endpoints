@@ -38,10 +38,10 @@ pub enum Error {
 impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::GET;
 
-    type Error = JsonError<Error>;
     type Path = Path;
     type Request = ();
     type Response = Ok<Json<Response>>;
+    type Error = JsonError<Error>;
 }
 
 impl From<Error> for StatusCode {

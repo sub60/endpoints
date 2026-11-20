@@ -72,8 +72,8 @@ pub struct ResponseBody {
 impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::POST;
 
-    type Error = StatusCode;
     type Path = Path;
     type Request = Json<RequestBody>;
     type Response = Ok<Json<ResponseBody>>;
+    type Error = StatusCode;
 }

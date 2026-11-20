@@ -9,6 +9,7 @@ mod body;
 mod cache_name;
 mod endpoint;
 mod path_params;
+mod permission;
 mod request;
 mod request_error;
 mod response;
@@ -24,6 +25,7 @@ pub use path_params::__private;
 #[cfg(feature = "axum")]
 pub use path_params::PathParamsRejection;
 pub use path_params::{PathParams, PathParamsError};
+pub use permission::{Permission, Permissions};
 pub use request::{Request, WithQuery};
 pub use request_error::RequestError;
 pub use response::{

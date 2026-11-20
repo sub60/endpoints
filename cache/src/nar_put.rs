@@ -32,8 +32,8 @@ pub enum Response {
 impl sub60_endpoints_common::Endpoint for Endpoint {
     const METHOD: Method = Method::PUT;
 
-    type Error = StatusCode;
     type Path = Path;
     type Request = NarBody;
     type Response = Response;
+    type Error = StatusCode;
 }
