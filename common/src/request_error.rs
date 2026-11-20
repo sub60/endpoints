@@ -1,36 +1,70 @@
 use http::StatusCode;
 
+use crate::response::VariantVisitor;
+use crate::{Response, ResponseVisitor, error};
+
 /// The ways a request can fail before it reaches an endpoint, e.g. when its
 /// path matches no endpoint.
 #[derive(
-    Debug, derive_more::Display, serde::Serialize, schemars::JsonSchema,
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    derive_more::Display,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
 )]
-#[serde(tag = "code", content = "details", rename_all = "snake_case")]
+#[serde(tag = "code", rename_all = "snake_case")]
+#[expect(missing_docs)]
 pub enum RequestError {
-    /// The request's path or body didn't parse.
-    #[display("the request is invalid")]
-    InvalidRequest,
-
-    /// No endpoint has the request's path.
-    #[display("there's no endpoint at the request's path")]
-    NotFound,
-
-    /// The endpoint at the request's path doesn't take the request's method.
-    #[display("the endpoint at the request's path doesn't take its method")]
-    MethodNotAllowed,
-
-    /// The server failed to handle the request.
-    #[display("the server failed to handle the request")]
-    Internal,
+    InvalidRequest(error::InvalidRequest),
+    NotFound(error::NotFound),
+    MethodNotAllowed(error::MethodNotAllowed),
+    Internal(error::Internal),
 }
 
 impl From<StatusCode> for RequestError {
     fn from(status: StatusCode) -> Self {
         match status {
-            StatusCode::NOT_FOUND => Self::NotFound,
-            StatusCode::METHOD_NOT_ALLOWED => Self::MethodNotAllowed,
-            status if status.is_server_error() => Self::Internal,
-            _ => Self::InvalidRequest,
+            StatusCode::NOT_FOUND => Self::NotFound(error::NotFound),
+            StatusCode::METHOD_NOT_ALLOWED => {
+                Self::MethodNotAllowed(error::MethodNotAllowed)
+            },
+            status if status.is_server_error() => {
+                Self::Internal(error::Internal)
+            },
+            _ => Self::InvalidRequest(error::InvalidRequest),
         }
+    }
+}
+
+impl Response for RequestError {
+    #[inline]
+    fn status(&self) -> StatusCode {
+        match self {
+            Self::InvalidRequest(error) => error.status(),
+            Self::NotFound(error) => error.status(),
+            Self::MethodNotAllowed(error) => error.status(),
+            Self::Internal(error) => error.status(),
+        }
+    }
+
+    #[inline]
+    fn visit<V: ResponseVisitor>(visitor: &mut V) {
+        error::InvalidRequest::visit(visitor);
+        error::NotFound::visit(visitor);
+        error::MethodNotAllowed::visit(visitor);
+        error::Internal::visit(visitor);
+    }
+
+    #[inline]
+    fn visit_variants<V: VariantVisitor>(visitor: &mut V) {
+        visitor.visit::<error::InvalidRequest, 0>();
+        visitor.visit::<error::NotFound, 1>();
+        visitor.visit::<error::MethodNotAllowed, 2>();
+        visitor.visit::<error::Internal, 3>();
     }
 }

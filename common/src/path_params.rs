@@ -78,6 +78,7 @@ pub mod __private {
     #[cfg(feature = "axum")]
     pub use super::extract::from_request_parts;
     use super::*;
+    pub use crate::response::VariantVisitor;
 
     /// The characters that get percent-encoded in a path parameter, i.e. all
     /// of them but the unreserved ones.

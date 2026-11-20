@@ -26,12 +26,24 @@ pub trait Response {
     /// Visits the status code and the body type of each of the type's
     /// responses.
     fn visit<V: ResponseVisitor>(visitor: &mut V);
+
+    /// Visits the type held by each of the enum's variants.
+    #[doc(hidden)]
+    #[inline]
+    fn visit_variants<V: VariantVisitor>(_visitor: &mut V) {}
 }
 
 /// TODO: docs.
 pub trait ResponseVisitor {
     /// TODO: docs.
     fn visit<B: Body>(&mut self, status: StatusCode);
+}
+
+/// Something done to the type held by each of an enum's variants.
+#[doc(hidden)]
+pub trait VariantVisitor {
+    /// Visits `T`, the type held by the enum's `I`th variant.
+    fn visit<T: Response, const I: usize>(&mut self);
 }
 
 /// A response with status code `S` and body `B`.
@@ -44,6 +56,16 @@ impl<const S: u16, B> WithStatus<S, B> {
         Ok(status) => status,
         Err(_) => panic!("status codes are between 100 and 999"),
     };
+}
+
+impl Response for StatusCode {
+    #[inline]
+    fn status(&self) -> StatusCode {
+        *self
+    }
+
+    #[inline]
+    fn visit<V: ResponseVisitor>(_: &mut V) {}
 }
 
 impl<const S: u16, B: Body> Response for WithStatus<S, B> {

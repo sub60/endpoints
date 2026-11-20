@@ -3,8 +3,8 @@
 //! This endpoint is used to start logging in with GitHub, and it returns the
 //! URL of GitHub's page asking the person to authorize sub60.
 
-use http::{Method, StatusCode};
-use sub60_endpoints_common::{Json, JsonError, Ok, PathParams};
+use http::Method;
+use sub60_endpoints_common::{Json, Ok, PathParams, WithMessage};
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
@@ -64,14 +64,19 @@ pub struct Response {
 }
 
 #[derive(
-    Debug, derive_more::Display, serde::Serialize, schemars::JsonSchema,
+    Debug,
+    derive_more::Display,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+    sub60_endpoints_common::Response,
 )]
-#[serde(tag = "code", content = "details", rename_all = "snake_case")]
-#[schemars(rename = "GitHubLoginError")]
+#[serde(tag = "code", rename_all = "snake_case")]
 #[expect(missing_docs)]
 pub enum Error {
     /// The redirect URI isn't an absolute `http` or `https` URL.
     #[display("the redirect URI isn't an absolute HTTP(S) URL")]
+    #[status(BAD_REQUEST)]
     InvalidRedirectUri,
 }
 
@@ -81,13 +86,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = Json<Request>;
     type Response = Ok<Json<Response>>;
-    type Error = JsonError<Error>;
-}
-
-impl From<Error> for StatusCode {
-    fn from(error: Error) -> Self {
-        match error {
-            Error::InvalidRedirectUri => Self::BAD_REQUEST,
-        }
-    }
+    type Error = Json<WithMessage<Error>>;
 }

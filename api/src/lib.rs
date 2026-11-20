@@ -26,8 +26,8 @@ pub use billing::{
     Billing,
     Money,
     NextInvoice,
-    PaymentMethod,
     PaidPlan,
+    PaymentMethod,
     Subscription,
 };
 pub use id::{AccountId, CacheId, IdFromStrError, UserId};

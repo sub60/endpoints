@@ -12,11 +12,12 @@ use sub60_endpoints_common::{
     Body,
     Endpoint,
     EndpointVisitor,
-    JsonError,
+    Json,
     Request,
     RequestError,
     Response,
     ResponseVisitor,
+    WithMessage,
 };
 
 const DOMAINS: &[Domain] = &[Domain {
@@ -106,6 +107,12 @@ struct ResponsesBuilder<'a> {
     responses: &'a mut Map<String, Value>,
 }
 
+struct BodiesCollector<'a> {
+    generator: &'a mut SchemaGenerator,
+    media_type: Option<&'static str>,
+    schemas: Vec<Value>,
+}
+
 impl OpenApiBuilder {
     fn query_parameters<Q: JsonSchema>(&mut self) -> Vec<Value> {
         let schema = Q::json_schema(&mut self.requests);
@@ -163,26 +170,34 @@ impl EndpointVisitor for OpenApiBuilder {
             );
         }
 
-        let mut failure = json!({ "description": "The request failed." });
+        let mut responses = Map::new();
 
-        if let Some(media_type) = E::Error::MEDIA_TYPE {
-            let schema = json!({
-                "anyOf": [
-                    E::Error::schema(&mut self.responses),
-                    JsonError::<RequestError>::schema(&mut self.responses),
-                ],
-            });
+        let mut builder = ResponsesBuilder {
+            generator: &mut self.responses,
+            responses: &mut responses,
+        };
+
+        E::Response::visit(&mut builder);
+        E::Error::visit(&mut builder);
+
+        let mut request_errors = BodiesCollector {
+            generator: &mut self.responses,
+            media_type: None,
+            schemas: Vec::new(),
+        };
+
+        Json::<WithMessage<RequestError>>::visit(&mut request_errors);
+
+        let mut failure = json!({
+            "description": "The request failed before reaching the endpoint.",
+        });
+
+        if let Some(media_type) = request_errors.media_type {
+            let schema = json!({ "anyOf": request_errors.schemas });
             failure["content"] = content(media_type, schema);
         }
 
-        let mut responses = Map::new();
-
         responses.insert("default".to_owned(), failure);
-
-        E::Response::visit(&mut ResponsesBuilder {
-            generator: &mut self.responses,
-            responses: &mut responses,
-        });
 
         operation.insert("responses".to_owned(), responses.into());
 
@@ -200,27 +215,67 @@ impl EndpointVisitor for OpenApiBuilder {
     }
 }
 
-impl ResponseVisitor for ResponsesBuilder<'_> {
-    fn visit<B: Body>(&mut self, status: StatusCode) {
-        let description = if status.is_success() {
-            "The request succeeded."
-        } else {
-            status.canonical_reason().unwrap_or("The request didn't succeed.")
-        };
-
-        let mut response = json!({ "description": description });
-
-        if let Some(content) = body_content::<B>(self.generator) {
-            response["content"] = content;
-        }
-
-        let previous =
-            self.responses.insert(status.as_str().to_owned(), response);
+impl ResponseVisitor for BodiesCollector<'_> {
+    fn visit<B: Body>(&mut self, _: StatusCode) {
+        let Some(media_type) = B::MEDIA_TYPE else { return };
 
         assert!(
-            previous.is_none(),
-            "an endpoint has two responses with status code {status}",
+            self.media_type.is_none_or(|previous| previous == media_type),
+            "the request errors have bodies of different media types",
         );
+
+        self.media_type = Some(media_type);
+        self.schemas.push(B::schema(self.generator).into());
+    }
+}
+
+impl ResponseVisitor for ResponsesBuilder<'_> {
+    fn visit<B: Body>(&mut self, status: StatusCode) {
+        let Some(response) = self.responses.get_mut(status.as_str()) else {
+            let description = if status.is_success() {
+                "The request succeeded."
+            } else {
+                status
+                    .canonical_reason()
+                    .unwrap_or("The request didn't succeed.")
+            };
+
+            let mut response = json!({ "description": description });
+
+            if let Some(content) = body_content::<B>(self.generator) {
+                response["content"] = content;
+            }
+
+            self.responses.insert(status.as_str().to_owned(), response);
+            return;
+        };
+
+        assert!(
+            !status.is_success(),
+            "an endpoint has two successful responses with status code \
+             {status}",
+        );
+
+        let schema = B::MEDIA_TYPE
+            .and_then(|media_type| {
+                response.pointer_mut(&format!(
+                    "/content/{}/schema",
+                    media_type.replace('~', "~0").replace('/', "~1"),
+                ))
+            })
+            .unwrap_or_else(|| {
+                panic!(
+                    "an endpoint has two errors with status code {status} \
+                     whose bodies have different media types",
+                )
+            });
+
+        let new = Value::from(B::schema(self.generator));
+
+        match schema.get_mut("oneOf").and_then(Value::as_array_mut) {
+            Some(schemas) => schemas.push(new),
+            None => *schema = json!({ "oneOf": [schema.take(), new] }),
+        }
     }
 }
 

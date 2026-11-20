@@ -8,6 +8,7 @@ mod account_name;
 mod body;
 mod cache_name;
 mod endpoint;
+pub mod error;
 mod path_params;
 mod permission;
 mod request;
@@ -16,9 +17,10 @@ mod response;
 mod timestamp;
 
 pub use account_name::{AccountName, AccountNameFromStrError};
-pub use body::{Body, Json, JsonError};
+pub use body::{Body, Json, WithMessage};
 pub use cache_name::{CacheName, CacheNameFromStrError};
 pub use endpoint::{Endpoint, EndpointVisitor};
+pub use error::Error;
 #[doc(hidden)]
 pub use path_params::__private;
 #[cfg(feature = "axum")]

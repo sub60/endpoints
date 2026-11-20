@@ -15,11 +15,9 @@ http = { workspace = true }
 percent-encoding = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 smol_str = { workspace = true, features = ["serde"] }
 sub60-endpoints-macros = { workspace = true }
-
-[dev-dependencies]
-serde_json = { workspace = true }
 
 [lints]
 workspace = true

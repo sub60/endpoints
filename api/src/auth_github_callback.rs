@@ -3,8 +3,15 @@
 //! This endpoint is used to finish logging in with GitHub, once GitHub has
 //! redirected the browser back with a `code`.
 
-use http::{Method, StatusCode};
-use sub60_endpoints_common::{Json, JsonError, Ok, PathParams, Timestamp};
+use http::Method;
+use sub60_endpoints_common::{
+    Json,
+    Ok,
+    PathParams,
+    Timestamp,
+    WithMessage,
+    error,
+};
 
 #[derive(Debug, Copy, Clone)]
 #[expect(missing_docs)]
@@ -84,29 +91,31 @@ pub enum LoginOutcome {
 }
 
 #[derive(
-    Debug, derive_more::Display, serde::Serialize, schemars::JsonSchema,
+    Debug,
+    derive_more::Display,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+    sub60_endpoints_common::Response,
 )]
-#[serde(tag = "code", content = "details", rename_all = "snake_case")]
-#[schemars(rename = "GitHubCallbackError")]
+#[serde(tag = "code", rename_all = "snake_case")]
 #[expect(missing_docs)]
 pub enum Error {
     /// GitHub refused to exchange the code, e.g. because it expired, was
     /// already used, or doesn't match the code verifier.
     #[display("GitHub refused to exchange the code")]
+    #[status(BAD_REQUEST)]
     InvalidCode,
-
     /// The GitHub user's primary email address isn't verified.
     #[display("the GitHub user's primary email address isn't verified")]
+    #[status(FORBIDDEN)]
     NoVerifiedEmail,
-
     /// GitHub couldn't be reached, or answered with an unexpected response.
     #[display("the request to GitHub failed")]
     #[serde(rename = "github_unavailable")]
+    #[status(BAD_GATEWAY)]
     GitHubUnavailable,
-
-    /// The server failed to log the user in.
-    #[display("the server failed to log the user in")]
-    Internal,
+    Internal(error::Internal),
 }
 
 impl sub60_endpoints_common::Endpoint for Endpoint {
@@ -115,16 +124,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = Json<Request>;
     type Response = Ok<Json<Response>>;
-    type Error = JsonError<Error>;
-}
-
-impl From<Error> for StatusCode {
-    fn from(error: Error) -> Self {
-        match error {
-            Error::InvalidCode => Self::BAD_REQUEST,
-            Error::NoVerifiedEmail => Self::FORBIDDEN,
-            Error::GitHubUnavailable => Self::BAD_GATEWAY,
-            Error::Internal => Self::INTERNAL_SERVER_ERROR,
-        }
-    }
+    type Error = Json<WithMessage<Error>>;
 }

@@ -2,13 +2,14 @@
 //!
 //! Gets whether a given candidate name can be given to a new account.
 
-use http::{Method, StatusCode};
+use http::Method;
 use sub60_endpoints_common::{
     AccountNameFromStrError,
     Json,
-    JsonError,
     Ok,
     PathParams,
+    WithMessage,
+    error,
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -39,14 +40,17 @@ pub enum NameAvailability {
 }
 
 #[derive(
-    Debug, derive_more::Display, serde::Serialize, schemars::JsonSchema,
+    Debug,
+    derive_more::Display,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+    sub60_endpoints_common::Response,
 )]
-#[serde(tag = "code", content = "details", rename_all = "snake_case")]
-#[schemars(rename = "GetAccountNameError")]
+#[serde(tag = "code", rename_all = "snake_case")]
 #[expect(missing_docs)]
 pub enum Error {
-    #[display("the server failed to look the name up")]
-    Internal,
+    Internal(error::Internal),
 }
 
 impl sub60_endpoints_common::Endpoint for Endpoint {
@@ -55,15 +59,7 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = ();
     type Response = Ok<Json<NameAvailability>>;
-    type Error = JsonError<Error>;
-}
-
-impl From<Error> for StatusCode {
-    fn from(error: Error) -> Self {
-        match error {
-            Error::Internal => Self::INTERNAL_SERVER_ERROR,
-        }
-    }
+    type Error = Json<WithMessage<Error>>;
 }
 
 #[cfg(test)]

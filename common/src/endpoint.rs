@@ -1,8 +1,6 @@
-use core::fmt;
+use http::Method;
 
-use http::{Method, StatusCode};
-
-use crate::{Body, PathParams, Request, Response};
+use crate::{PathParams, Request, Response};
 
 /// An HTTP endpoint.
 pub trait Endpoint {
@@ -22,7 +20,7 @@ pub trait Endpoint {
     type Response: Response;
 
     /// TODO: docs.
-    type Error: fmt::Display + Into<StatusCode> + Body;
+    type Error: Response;
 }
 
 /// Something done to each of a domain's endpoints.

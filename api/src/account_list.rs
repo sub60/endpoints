@@ -3,14 +3,15 @@
 //! Lists the accounts the request's principal has access to, or looks one up by
 //! name.
 
-use http::{Method, StatusCode};
+use http::Method;
 use sub60_endpoints_common::{
     AccountName,
     Json,
-    JsonError,
     Ok,
     PathParams,
+    WithMessage,
     WithQuery,
+    error,
 };
 
 use crate::Account;
@@ -56,19 +57,18 @@ pub struct Response {
 }
 
 #[derive(
-    Debug, derive_more::Display, serde::Serialize, schemars::JsonSchema,
+    Debug,
+    derive_more::Display,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+    sub60_endpoints_common::Response,
 )]
-#[serde(tag = "code", content = "details", rename_all = "snake_case")]
-#[schemars(rename = "ListAccountsError")]
+#[serde(tag = "code", rename_all = "snake_case")]
 #[expect(missing_docs)]
 pub enum Error {
-    /// The request has no token, or its token is invalid or expired.
-    #[display("the request needs a valid token")]
-    Unauthorized,
-
-    /// The server failed to list the accounts.
-    #[display("the server failed to list the accounts")]
-    Internal,
+    Unauthorized(error::Unauthorized),
+    Internal(error::Internal),
 }
 
 impl sub60_endpoints_common::Endpoint for Endpoint {
@@ -77,14 +77,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = WithQuery<Query>;
     type Response = Ok<Json<Response>>;
-    type Error = JsonError<Error>;
-}
-
-impl From<Error> for StatusCode {
-    fn from(error: Error) -> Self {
-        match error {
-            Error::Unauthorized => Self::UNAUTHORIZED,
-            Error::Internal => Self::INTERNAL_SERVER_ERROR,
-        }
-    }
+    type Error = Json<WithMessage<Error>>;
 }
