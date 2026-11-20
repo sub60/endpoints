@@ -94,7 +94,6 @@ pub struct NextInvoice {
     /// [current plan](`Subscription::Active::plan`) when downgrading to a less
     /// expensive paid plan.
     pub plan: PaidPlan,
-    pub amount: Money,
     pub charged_at: Timestamp,
 }
 

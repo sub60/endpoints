@@ -6,6 +6,7 @@ mod account;
 pub mod account_billing_get;
 pub mod account_billing_payment_method_delete;
 pub mod account_billing_payment_method_update;
+pub mod account_billing_plan_preview;
 pub mod account_billing_plan_update;
 pub mod account_billing_update;
 pub mod account_create;
@@ -42,6 +43,7 @@ pub fn visit_endpoints<V: sub60_endpoints_common::EndpointVisitor>(
     visitor.visit::<account_billing_get::Endpoint>();
     visitor.visit::<account_billing_payment_method_delete::Endpoint>();
     visitor.visit::<account_billing_payment_method_update::Endpoint>();
+    visitor.visit::<account_billing_plan_preview::Endpoint>();
     visitor.visit::<account_billing_plan_update::Endpoint>();
     visitor.visit::<account_billing_update::Endpoint>();
     visitor.visit::<account_create::Endpoint>();
