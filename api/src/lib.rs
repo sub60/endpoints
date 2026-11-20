@@ -4,6 +4,7 @@ extern crate alloc;
 
 mod account;
 pub mod account_billing_get;
+pub mod account_billing_update;
 pub mod account_create;
 pub mod account_delete;
 pub mod account_get;
@@ -35,6 +36,7 @@ pub fn visit_endpoints<V: sub60_endpoints_common::EndpointVisitor>(
     visitor: &mut V,
 ) {
     visitor.visit::<account_billing_get::Endpoint>();
+    visitor.visit::<account_billing_update::Endpoint>();
     visitor.visit::<account_create::Endpoint>();
     visitor.visit::<account_delete::Endpoint>();
     visitor.visit::<account_get::Endpoint>();
