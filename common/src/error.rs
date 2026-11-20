@@ -134,7 +134,7 @@ impl<E: Error> Response for E {
 
     #[inline]
     fn visit<V: ResponseVisitor>(visitor: &mut V) {
-        visitor.visit::<()>(E::STATUS);
+        visitor.visit::<()>(E::STATUS, None);
     }
 }
 

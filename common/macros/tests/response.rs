@@ -24,14 +24,42 @@ enum GetResponse<B: Body> {
     NotFound(NotFound),
 }
 
+#[derive(Response)]
+#[expect(dead_code, reason = "the enum is only visited")]
+enum DocumentedResponse {
+    /// The value was created.
+    ///
+    /// It's new.
+    Created(Created<Json<u32>>),
+    Replaced(Ok<Json<u32>>),
+    /// The value is gone.
+    #[status(GONE)]
+    Gone,
+}
+
 /// A [`ResponseVisitor`] that collects the status codes and media types of the
 /// visited responses.
 #[derive(Default)]
 struct Collect(Vec<(StatusCode, Option<&'static str>)>);
 
+/// A [`ResponseVisitor`] that collects the descriptions of the visited
+/// responses.
+#[derive(Default)]
+struct CollectDescriptions(Vec<Option<&'static str>>);
+
 impl ResponseVisitor for Collect {
-    fn visit<B: Body>(&mut self, status: StatusCode) {
+    fn visit<B: Body>(&mut self, status: StatusCode, _: Option<&'static str>) {
         self.0.push((status, B::MEDIA_TYPE));
+    }
+}
+
+impl ResponseVisitor for CollectDescriptions {
+    fn visit<B: Body>(
+        &mut self,
+        _: StatusCode,
+        description: Option<&'static str>,
+    ) {
+        self.0.push(description);
     }
 }
 
@@ -68,6 +96,20 @@ fn visit_visits_the_variants_in_order() {
             (StatusCode::CREATED, Some("application/json")),
             (StatusCode::OK, Some("application/json")),
             (StatusCode::GONE, None),
+        ]
+    );
+}
+
+#[test]
+fn visit_describes_the_variants_with_their_docs() {
+    let mut collect = CollectDescriptions::default();
+    DocumentedResponse::visit(&mut collect);
+    assert_eq!(
+        collect.0,
+        [
+            Some("The value was created.\n\nIt's new."),
+            None,
+            Some("The value is gone.")
         ]
     );
 }

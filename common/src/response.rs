@@ -35,8 +35,13 @@ pub trait Response {
 
 /// TODO: docs.
 pub trait ResponseVisitor {
-    /// TODO: docs.
-    fn visit<B: Body>(&mut self, status: StatusCode);
+    /// Visits a response with status code `status`, body `B` and an optional
+    /// `description`.
+    fn visit<B: Body>(
+        &mut self,
+        status: StatusCode,
+        description: Option<&'static str>,
+    );
 }
 
 /// Something done to the type held by each of an enum's variants.
@@ -44,6 +49,14 @@ pub trait ResponseVisitor {
 pub trait VariantVisitor {
     /// Visits `T`, the type held by the enum's `I`th variant.
     fn visit<T: Response, const I: usize>(&mut self);
+}
+
+/// A [`ResponseVisitor`] giving `description` to the responses visited
+/// without one.
+#[doc(hidden)]
+pub struct WithDescription<'a, V> {
+    pub visitor: &'a mut V,
+    pub description: &'static str,
 }
 
 /// A response with status code `S` and body `B`.
@@ -76,7 +89,18 @@ impl<const S: u16, B: Body> Response for WithStatus<S, B> {
 
     #[inline]
     fn visit<V: ResponseVisitor>(visitor: &mut V) {
-        visitor.visit::<B>(Self::STATUS);
+        visitor.visit::<B>(Self::STATUS, None);
+    }
+}
+
+impl<V: ResponseVisitor> ResponseVisitor for WithDescription<'_, V> {
+    #[inline]
+    fn visit<B: Body>(
+        &mut self,
+        status: StatusCode,
+        description: Option<&'static str>,
+    ) {
+        self.visitor.visit::<B>(status, description.or(Some(self.description)));
     }
 }
 

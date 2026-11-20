@@ -202,8 +202,12 @@ where
 
 impl<B: Body, V: ResponseVisitor> ResponseVisitor for WithBody<'_, B, V> {
     #[inline]
-    fn visit<Ignored: Body>(&mut self, status: StatusCode) {
-        self.visitor.visit::<B>(status);
+    fn visit<Ignored: Body>(
+        &mut self,
+        status: StatusCode,
+        description: Option<&'static str>,
+    ) {
+        self.visitor.visit::<B>(status, description);
     }
 }
 

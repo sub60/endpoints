@@ -20,10 +20,11 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
         ));
     }
 
-    // The type of each variant's response, and the arm matching the variant
-    // in `status()`.
+    // The type of each variant's response, the arm matching the variant in
+    // `status()`, and the statement visiting the variant in `visit()`.
     let mut types = Vec::<syn::Type>::new();
     let mut arms = Vec::new();
+    let mut visits = Vec::new();
 
     for variant in &data.variants {
         let ident = &variant.ident;
@@ -75,6 +76,20 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
                 ));
             },
         }
+
+        let ty = types.last().expect("the variant's type was just pushed");
+
+        visits.push(match doc(&variant.attrs) {
+            Some(description) => quote! {
+                <#ty as #krate::Response>::visit(
+                    &mut #krate::__private::WithDescription {
+                        visitor: &mut *visitor,
+                        description: #description,
+                    },
+                );
+            },
+            None => quote!(<#ty as #krate::Response>::visit(visitor);),
+        });
     }
 
     let name = &input.ident;
@@ -104,7 +119,7 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
 
             #[inline]
             fn visit<V: #krate::ResponseVisitor>(visitor: &mut V) {
-                #(<#types as #krate::Response>::visit(visitor);)*
+                #(#visits)*
             }
 
             #[inline]
@@ -118,4 +133,24 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
             }
         }
     })
+}
+
+/// Returns the text of the doc comment in `attrs`, or `None` if there's none.
+fn doc(attrs: &[syn::Attribute]) -> Option<String> {
+    let mut lines = Vec::new();
+
+    for attr in attrs.iter().filter(|attr| attr.path().is_ident("doc")) {
+        if let syn::Meta::NameValue(meta) = &attr.meta
+            && let syn::Expr::Lit(syn::ExprLit {
+                lit: syn::Lit::Str(line), ..
+            }) = &meta.value
+        {
+            let line = line.value();
+            lines.push(line.strip_prefix(' ').unwrap_or(&line).to_owned());
+        }
+    }
+
+    let doc = lines.join("\n");
+    let doc = doc.trim();
+    (!doc.is_empty()).then(|| doc.to_owned())
 }

@@ -218,7 +218,7 @@ impl EndpointVisitor for OpenApiBuilder {
 }
 
 impl ResponseVisitor for BodiesCollector<'_> {
-    fn visit<B: Body>(&mut self, _: StatusCode) {
+    fn visit<B: Body>(&mut self, _: StatusCode, _: Option<&'static str>) {
         let Some(media_type) = B::MEDIA_TYPE else { return };
 
         assert!(
@@ -232,16 +232,15 @@ impl ResponseVisitor for BodiesCollector<'_> {
 }
 
 impl ResponseVisitor for ResponsesBuilder<'_> {
-    fn visit<B: Body>(&mut self, status: StatusCode) {
-        let Some(response) = self.responses.get_mut(status.as_str()) else {
-            let description = if status.is_success() {
-                "The request succeeded."
-            } else {
-                status
-                    .canonical_reason()
-                    .unwrap_or("The request didn't succeed.")
-            };
+    fn visit<B: Body>(
+        &mut self,
+        status: StatusCode,
+        description: Option<&'static str>,
+    ) {
+        let reason = status.canonical_reason().unwrap_or(status.as_str());
 
+        let Some(response) = self.responses.get_mut(status.as_str()) else {
+            let description = description.unwrap_or(reason);
             let mut response = json!({ "description": description });
 
             if let Some(content) = body_content::<B>(self.generator) {
@@ -257,6 +256,9 @@ impl ResponseVisitor for ResponsesBuilder<'_> {
             "an endpoint has two successful responses with status code \
              {status}",
         );
+
+        // The first error's description doesn't describe the others.
+        response["description"] = reason.into();
 
         let schema = B::MEDIA_TYPE
             .and_then(|media_type| {
