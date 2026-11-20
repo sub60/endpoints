@@ -6,17 +6,14 @@ use http::Method;
 use sub60_endpoints_common::{Json, Ok, PathParams, WithMessage, error};
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
 #[route("/storage-size")]
-#[expect(missing_docs)]
 pub struct Path;
 
 #[derive(Debug, PartialEq, Eq, serde::Serialize, schemars::JsonSchema)]
 #[schemars(rename = "StorageSizeResponse")]
-#[expect(missing_docs)]
 pub struct Response {
     /// The number of bytes stored across all caches, counting each NAR once
     /// however many caches reference it, plus every NARInfo.
@@ -32,7 +29,6 @@ pub struct Response {
     sub60_endpoints_common::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum Error {
     Internal(error::Internal),
 }

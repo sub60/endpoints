@@ -13,12 +13,10 @@ use sub60_endpoints_common::{
 };
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(Debug, Clone, PartialEq, Eq, PathParams)]
 #[route("/account-names/{name}")]
-#[expect(missing_docs)]
 pub struct Path {
     pub name: String,
 }
@@ -32,7 +30,6 @@ pub struct Path {
     schemars::JsonSchema,
 )]
 #[serde(tag = "status", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum NameAvailability {
     Available,
     Taken,
@@ -48,7 +45,6 @@ pub enum NameAvailability {
     sub60_endpoints_common::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum Error {
     Internal(error::Internal),
 }

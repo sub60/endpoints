@@ -11,7 +11,6 @@ use sub60_endpoints_common::{Json, Ok, PathParams, Timestamp};
 use crate::CachePath;
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
@@ -35,7 +34,6 @@ pub type UploadId = String;
     serde::Deserialize,
     schemars::JsonSchema,
 )]
-#[expect(missing_docs)]
 pub struct RequestBody {
     /// The size of the NAR being uploaded, in bytes.
     pub file_size: NonZeroU64,
@@ -50,7 +48,6 @@ pub struct RequestBody {
     serde::Deserialize,
     schemars::JsonSchema,
 )]
-#[expect(missing_docs)]
 pub struct ResponseBody {
     /// TODO: docs.
     pub upload_id: UploadId,

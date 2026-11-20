@@ -11,7 +11,6 @@ use crate::AccountId;
     serde::Deserialize,
     schemars::JsonSchema,
 )]
-#[expect(missing_docs)]
 pub struct Account {
     pub id: AccountId,
     pub name: AccountName,
@@ -33,7 +32,6 @@ pub struct Account {
     schemars::JsonSchema,
 )]
 #[serde(rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum AccountKind {
     Personal,
     Org,
@@ -50,8 +48,6 @@ pub enum AccountKind {
     schemars::JsonSchema,
 )]
 pub struct AccountSummary {
-    #[expect(missing_docs)]
     pub id: AccountId,
-    #[expect(missing_docs)]
     pub name: AccountName,
 }

@@ -18,7 +18,6 @@ use crate::{Response, ResponseVisitor, error};
     schemars::JsonSchema,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum RequestError {
     InvalidRequest(error::InvalidRequest),
     NotFound(error::NotFound),

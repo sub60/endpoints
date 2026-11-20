@@ -8,11 +8,9 @@ use sub60_endpoints_common::{Json, NoContent, WithMessage, error};
 
 use crate::{AccountSummary, user_get};
 
-#[expect(missing_docs)]
 pub type Path = user_get::Path;
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(
@@ -24,7 +22,6 @@ pub struct Endpoint;
     sub60_endpoints_common::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum Error {
     Unauthorized(error::Unauthorized),
     /// The user is the only owner of some org accounts, which would be left

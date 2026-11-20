@@ -1,5 +1,3 @@
-#![allow(missing_docs)]
-
 use http::StatusCode;
 use schemars::{Schema, SchemaGenerator};
 use sub60_endpoints_common::{

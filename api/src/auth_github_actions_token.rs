@@ -13,12 +13,10 @@ use sub60_endpoints_common::{
 };
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
 #[route("/auth/github/actions/token")]
-#[expect(missing_docs)]
 pub struct Path;
 
 #[derive(
@@ -31,7 +29,6 @@ pub struct Path;
     schemars::JsonSchema,
 )]
 #[schemars(rename = "GitHubActionsAuthRequest")]
-#[expect(missing_docs)]
 pub struct Request {
     /// The OIDC token the job got from GitHub, requested with the server's
     /// origin as its audience.
@@ -48,7 +45,6 @@ pub struct Request {
     schemars::JsonSchema,
 )]
 #[schemars(rename = "GitHubActionsAuthResponse")]
-#[expect(missing_docs)]
 pub struct Response {
     /// The token to authenticate requests with, as a bearer token in their
     /// `Authorization` header.
@@ -67,7 +63,6 @@ pub struct Response {
     sub60_endpoints_common::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum Error {
     /// The OIDC token isn't a valid one for this server, e.g. because it has
     /// expired, it wasn't signed by GitHub Actions, or its audience isn't the

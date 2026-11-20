@@ -26,7 +26,6 @@ pub type RequestBody = StoreHashes;
 pub type ResponseBody = StoreHashes;
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.

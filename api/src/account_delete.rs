@@ -8,10 +8,8 @@ use sub60_endpoints_common::{Json, NoContent, WithMessage, error};
 use crate::account_get;
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
-#[expect(missing_docs)]
 pub type Path = account_get::Path;
 
 #[derive(
@@ -23,7 +21,6 @@ pub type Path = account_get::Path;
     sub60_endpoints_common::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum Error {
     Unauthorized(error::Unauthorized),
     Forbidden(error::Forbidden),

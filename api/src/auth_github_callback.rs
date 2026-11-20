@@ -14,12 +14,10 @@ use sub60_endpoints_common::{
 };
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
 #[route("/auth/github/callback")]
-#[expect(missing_docs)]
 pub struct Path;
 
 #[derive(
@@ -32,7 +30,6 @@ pub struct Path;
     schemars::JsonSchema,
 )]
 #[schemars(rename = "GitHubCallbackRequest")]
-#[expect(missing_docs)]
 pub struct Request {
     /// The `code` query parameter of GitHub's redirect.
     pub code: String,
@@ -52,7 +49,6 @@ pub struct Request {
     schemars::JsonSchema,
 )]
 #[schemars(rename = "GitHubCallbackResponse")]
-#[expect(missing_docs)]
 pub struct Response {
     /// The token the client will use to authenticate the user's requests.
     pub token: String,
@@ -75,7 +71,6 @@ pub struct Response {
     schemars::JsonSchema,
 )]
 #[serde(rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum LoginOutcome {
     /// The user already had a personal account.
     LoggedIn,
@@ -99,7 +94,6 @@ pub enum LoginOutcome {
     sub60_endpoints_common::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum Error {
     /// GitHub refused to exchange the code, e.g. because it expired, was
     /// already used, or doesn't match the code verifier.

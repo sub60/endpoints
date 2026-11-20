@@ -11,7 +11,6 @@ use crate::nar_multiparts::UploadId;
 use crate::{CachePath, Etag};
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
@@ -27,7 +26,6 @@ pub struct Path<Id = UploadId> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, sub60_endpoints_common::Response)]
-#[expect(missing_docs)]
 pub enum Response {
     /// The NAR was stored.
     Created(Created<Json<ResponseBody>>),
@@ -46,7 +44,6 @@ pub enum Response {
     serde::Deserialize,
     schemars::JsonSchema,
 )]
-#[expect(missing_docs)]
 pub struct RequestBody {
     /// The list of [`Etag`]s returned by the `UploadPart` requests to the
     /// cache's object storage.
@@ -65,7 +62,6 @@ pub struct RequestBody {
     serde::Deserialize,
     schemars::JsonSchema,
 )]
-#[expect(missing_docs)]
 pub struct ResponseBody {
     /// The SHA-256 hash of the uploaded NAR.
     #[schemars(with = "String")]

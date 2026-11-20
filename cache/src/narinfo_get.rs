@@ -9,7 +9,6 @@ use sub60_endpoints_common::{Body, NotFound, Ok, PathParams};
 use crate::CachePath;
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
@@ -26,7 +25,6 @@ pub struct Path {
 
 #[derive(Debug, PartialEq, Eq, sub60_endpoints_common::Response)]
 #[expect(clippy::large_enum_variant)]
-#[expect(missing_docs)]
 pub enum Response {
     /// The NARInfo, signed with the cache's key.
     Found(Ok<NarInfoBody>),

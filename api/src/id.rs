@@ -32,7 +32,6 @@ macro_rules! id {
     ($(#[$attr:meta])* $name:ident, $kind:expr) => {
         $(#[$attr])*
         #[derive(Copy, Clone, PartialEq, Eq, Hash)]
-        #[expect(missing_docs)]
         pub struct $name(pub [u8; 15]);
 
         impl $name {

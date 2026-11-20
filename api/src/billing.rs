@@ -11,7 +11,6 @@ use sub60_endpoints_common::Timestamp;
     serde::Deserialize,
     schemars::JsonSchema,
 )]
-#[expect(missing_docs)]
 pub struct Billing {
     /// The plan the account is on while it has no subscription.
     pub base_plan: BasePlan,
@@ -33,7 +32,6 @@ pub struct Billing {
     schemars::JsonSchema,
 )]
 #[serde(rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum BasePlan {
     Free,
     Insider,
@@ -49,7 +47,6 @@ pub enum BasePlan {
     schemars::JsonSchema,
 )]
 #[serde(tag = "status", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum Subscription {
     Active {
         plan: PaidPlan,
@@ -78,7 +75,6 @@ pub enum Subscription {
     schemars::JsonSchema,
 )]
 #[serde(rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum PaidPlan {
     Pro,
     Enterprise,
@@ -93,7 +89,6 @@ pub enum PaidPlan {
     serde::Deserialize,
     schemars::JsonSchema,
 )]
-#[expect(missing_docs)]
 pub struct NextInvoice {
     pub amount: Money,
     pub charged_at: Timestamp,
@@ -109,7 +104,6 @@ pub struct NextInvoice {
     schemars::JsonSchema,
 )]
 #[serde(tag = "kind", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum Money {
     Usd { cents: u64 },
 }
@@ -124,7 +118,6 @@ pub enum Money {
     schemars::JsonSchema,
 )]
 #[serde(tag = "kind", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum PaymentMethod {
     Card {
         /// The card's network, e.g. `visa` or `mastercard`.

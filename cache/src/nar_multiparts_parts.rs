@@ -13,7 +13,6 @@ use crate::CachePath;
 use crate::nar_multiparts::UploadId;
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
@@ -37,7 +36,6 @@ pub struct Path<Id = UploadId> {
     serde::Deserialize,
     schemars::JsonSchema,
 )]
-#[expect(missing_docs)]
 pub struct RequestBody {
     /// The list of part numbers to request upload URLs for. The numbers can be
     /// in any order, but there shouldn't be any duplicates.
@@ -53,7 +51,6 @@ pub struct RequestBody {
     serde::Deserialize,
     schemars::JsonSchema,
 )]
-#[expect(missing_docs)]
 pub struct ResponseBody {
     /// The pre-signed URLs whose order matches the one of the
     /// [part numbers](RequestBody::part_numbers) in the

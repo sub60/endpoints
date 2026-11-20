@@ -8,14 +8,11 @@ use sub60_endpoints_common::{Json, Ok, PathParams, WithMessage, error};
 use crate::{AccountId, Billing};
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
 #[route("/accounts/{account_id}/billing")]
-#[expect(missing_docs)]
 pub struct Path {
-    #[expect(missing_docs)]
     pub account_id: AccountId,
 }
 
@@ -28,7 +25,6 @@ pub struct Path {
     sub60_endpoints_common::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum Error {
     Unauthorized(error::Unauthorized),
     Forbidden(error::Forbidden),

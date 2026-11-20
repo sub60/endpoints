@@ -17,12 +17,10 @@ use sub60_endpoints_common::{
 use crate::Account;
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
 #[route("/accounts")]
-#[expect(missing_docs)]
 pub struct Path;
 
 #[derive(
@@ -35,7 +33,6 @@ pub struct Path;
     serde::Deserialize,
     schemars::JsonSchema,
 )]
-#[expect(missing_docs)]
 pub struct Query {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<AccountName>,
@@ -51,7 +48,6 @@ pub struct Query {
     schemars::JsonSchema,
 )]
 #[schemars(rename = "AccountList")]
-#[expect(missing_docs)]
 pub struct Response {
     pub accounts: Vec<Account>,
 }
@@ -65,7 +61,6 @@ pub struct Response {
     sub60_endpoints_common::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum Error {
     Unauthorized(error::Unauthorized),
     Internal(error::Internal),

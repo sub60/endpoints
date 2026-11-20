@@ -1,5 +1,3 @@
-#![allow(missing_docs)]
-
 use core::fmt;
 use std::{env, process};
 

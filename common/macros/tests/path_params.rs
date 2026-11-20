@@ -1,5 +1,3 @@
-#![allow(missing_docs)]
-
 use sub60_endpoints_common::{PathParams, PathParamsError};
 
 #[derive(Debug, PartialEq, Eq, PathParams)]

@@ -11,7 +11,6 @@ use sub60_endpoints_common::{Created, NoContent};
 use crate::{NarBody, nar_head};
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.
@@ -20,7 +19,6 @@ pub type Path = nar_head::Path;
 #[derive(
     Debug, Copy, Clone, PartialEq, Eq, sub60_endpoints_common::Response,
 )]
-#[expect(missing_docs)]
 pub enum Response {
     /// The NAR was stored.
     Created(Created),

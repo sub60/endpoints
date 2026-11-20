@@ -10,7 +10,6 @@ use sub60_endpoints_common::{Body, Ok, PathParams};
 use crate::CachePath;
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 /// The path parameters of the endpoint's requests.

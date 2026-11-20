@@ -7,12 +7,10 @@ use http::Method;
 use sub60_endpoints_common::{Json, Ok, PathParams, WithMessage};
 
 #[derive(Debug, Copy, Clone)]
-#[expect(missing_docs)]
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
 #[route("/auth/github/login")]
-#[expect(missing_docs)]
 pub struct Path;
 
 #[derive(
@@ -25,7 +23,6 @@ pub struct Path;
     schemars::JsonSchema,
 )]
 #[schemars(rename = "GitHubLoginRequest")]
-#[expect(missing_docs)]
 pub struct Request {
     /// The URL GitHub redirects the browser to once the person has authorized
     /// sub60. It must be one of the callback URLs registered on sub60's GitHub
@@ -43,7 +40,6 @@ pub struct Request {
     schemars::JsonSchema,
 )]
 #[schemars(rename = "GitHubLoginResponse")]
-#[expect(missing_docs)]
 pub struct Response {
     /// The URL of GitHub's authorization page.
     pub authorize_url: String,
@@ -72,7 +68,6 @@ pub struct Response {
     sub60_endpoints_common::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
-#[expect(missing_docs)]
 pub enum Error {
     /// The redirect URI isn't an absolute `http` or `https` URL.
     #[display("the redirect URI isn't an absolute HTTP(S) URL")]
