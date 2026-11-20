@@ -5,6 +5,7 @@
 
 use http::Method;
 use sub60_endpoints_common::{Json, Ok, PathParams, WithMessage};
+use url::Url;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
@@ -27,7 +28,7 @@ pub struct Request {
     /// The URL GitHub redirects the browser to once the person has authorized
     /// sub60. It must be one of the callback URLs registered on sub60's GitHub
     /// App.
-    pub redirect_uri: String,
+    pub redirect_url: Url,
 }
 
 #[derive(
@@ -42,18 +43,18 @@ pub struct Request {
 #[schemars(rename = "GitHubLoginResponse")]
 pub struct Response {
     /// The URL of GitHub's authorization page.
-    pub authorize_url: String,
+    pub authorize_url: Url,
 
     /// The random value in the [authorization URL](Self::authorize_url). The
     /// client must keep it until GitHub redirects the browser to
-    /// [`redirect_uri`](Request::redirect_uri), and refuse the redirect unless
+    /// [`redirect_url`](Request::redirect_url), and refuse the redirect unless
     /// its `state` query parameter matches this.
     pub state: String,
 
     /// The PKCE code verifier whose challenge is in the
     /// [authorization URL](Self::authorize_url). The client must keep it
     /// secret until GitHub redirects the browser to
-    /// [`redirect_uri`](Request::redirect_uri), and then send it with the
+    /// [`redirect_url`](Request::redirect_url), and then send it with the
     /// redirect's `code` to the [callback](crate::auth_github_callback)
     /// endpoint to finish the login.
     pub code_verifier: String,
@@ -69,10 +70,10 @@ pub struct Response {
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
-    /// The redirect URI isn't an absolute `http` or `https` URL.
-    #[display("the redirect URI isn't an absolute HTTP(S) URL")]
+    /// The redirect URL's scheme isn't `http` or `https`.
+    #[display("the redirect URL isn't an HTTP(S) URL")]
     #[status(BAD_REQUEST)]
-    InvalidRedirectUri,
+    InvalidRedirectUrl,
 }
 
 impl sub60_endpoints_common::Endpoint for Endpoint {

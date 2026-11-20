@@ -77,6 +77,22 @@ pub struct NotFound;
 #[display("the request is invalid")]
 pub struct InvalidRequest;
 
+/// The request's cursor isn't a `next_cursor` the list returned.
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    derive_more::Display,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+#[display("the request's cursor is invalid")]
+pub struct InvalidCursor;
+
 /// The endpoint at the request's path doesn't take the request's method.
 #[derive(
     Debug,
@@ -135,6 +151,10 @@ impl Error for NotFound {
 }
 
 impl Error for InvalidRequest {
+    const STATUS: StatusCode = StatusCode::BAD_REQUEST;
+}
+
+impl Error for InvalidCursor {
     const STATUS: StatusCode = StatusCode::BAD_REQUEST;
 }
 

@@ -1,6 +1,9 @@
 use core::ops::Range;
 
 use sub60_endpoints_common::Timestamp;
+use url::Url;
+
+use crate::InvoiceId;
 
 #[derive(
     Debug,
@@ -57,9 +60,7 @@ pub enum Subscription {
         next_invoice: Option<NextInvoice>,
     },
     PastDue {
-        plan: PaidPlan,
-        unpaid_period: Range<Timestamp>,
-        amount_due: Money,
+        invoice: Invoice,
     },
 }
 
@@ -95,6 +96,63 @@ pub struct NextInvoice {
     /// expensive paid plan.
     pub plan: PaidPlan,
     pub charged_at: Timestamp,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+pub struct Invoice {
+    pub id: InvoiceId,
+    pub created_at: Timestamp,
+    pub reason: InvoiceReason,
+    pub plan: PaidPlan,
+    pub period: Range<Timestamp>,
+    pub amount: Money,
+    #[serde(flatten)]
+    pub status: InvoiceStatus,
+    pub pdf_url: Url,
+}
+
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum InvoiceReason {
+    Start,
+    Renewal,
+    Upgrade,
+}
+
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum InvoiceStatus {
+    Open,
+    Paid { paid_at: Timestamp },
+    Void { voided_at: Timestamp },
 }
 
 #[derive(

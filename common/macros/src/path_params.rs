@@ -219,8 +219,8 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
     })
 }
 
-/// Returns the struct's fields, which must be named, or none for a unit
-/// struct.
+/// Returns a named-field struct's fields, or none for a unit struct. Any other
+/// input is an error.
 fn named_fields(
     input: &DeriveInput,
 ) -> syn::Result<Punctuated<Field, Token![,]>> {

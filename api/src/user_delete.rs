@@ -24,8 +24,8 @@ pub struct Endpoint;
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
     Unauthorized(error::Unauthorized),
-    /// The user is the only owner of some org accounts, which would be left
-    /// without one.
+    /// The user is the only owner of some org accounts. Deleting the user would
+    /// leave those accounts without an owner.
     #[display("the user is the only owner of {} org accounts", accounts.len())]
     #[status(CONFLICT)]
     LastOwner {

@@ -129,7 +129,9 @@ impl OpenApiBuilder {
                     "required": required.is_some_and(|required| {
                         required.contains(&json!(name))
                     }),
-                    "schema": schema,
+                    // A query string can't hold a `null`, so an `Option` field
+                    // that's `None` is left out of it.
+                    "schema": without_null(schema.clone()),
                 })
             })
             .collect()
@@ -287,4 +289,32 @@ fn content(media_type: &str, schema: impl serde::Serialize) -> Value {
     let mut content = Map::new();
     content.insert(media_type.to_owned(), json!({ "schema": schema }));
     content.into()
+}
+
+/// Returns `schema` with `null` removed from the values it allows.
+fn without_null(mut schema: Value) -> Value {
+    let Some(object) = schema.as_object_mut() else {
+        return schema;
+    };
+
+    if let Some(ty) = object.get_mut("type")
+        && let Value::Array(types) = ty
+    {
+        types.retain(|ty| ty != "null");
+        if types.len() == 1 {
+            let only = types.remove(0);
+            *ty = only;
+        }
+    }
+
+    if let Some(Value::Array(variants)) = object.get_mut("anyOf") {
+        variants.retain(|variant| *variant != json!({ "type": "null" }));
+        if let [Value::Object(only)] = variants.as_mut_slice() {
+            let only = core::mem::take(only);
+            object.remove("anyOf");
+            object.extend(only);
+        }
+    }
+
+    schema
 }

@@ -4,6 +4,7 @@ extern crate alloc;
 
 mod account;
 pub mod account_billing_get;
+pub mod account_billing_invoice_list;
 pub mod account_billing_payment_method_delete;
 pub mod account_billing_payment_method_update;
 pub mod account_billing_plan_preview;
@@ -28,19 +29,23 @@ pub use billing::{
     BasePlan,
     Billing,
     ChargeConfirmation,
+    Invoice,
+    InvoiceReason,
+    InvoiceStatus,
     Money,
     NextInvoice,
     PaidPlan,
     PaymentMethod,
     Subscription,
 };
-pub use id::{AccountId, CacheId, IdFromStrError, UserId};
+pub use id::{AccountId, CacheId, IdFromStrError, InvoiceId, UserId};
 
 /// Calls the visitor on each of the API's endpoints.
 pub fn visit_endpoints<V: sub60_endpoints_common::EndpointVisitor>(
     visitor: &mut V,
 ) {
     visitor.visit::<account_billing_get::Endpoint>();
+    visitor.visit::<account_billing_invoice_list::Endpoint>();
     visitor.visit::<account_billing_payment_method_delete::Endpoint>();
     visitor.visit::<account_billing_payment_method_update::Endpoint>();
     visitor.visit::<account_billing_plan_preview::Endpoint>();

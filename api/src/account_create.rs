@@ -1,9 +1,8 @@
 //! The `POST /accounts` endpoint.
 //!
-//! Creates an account for the user the request's token acts as. This can be
-//! used to create a user's personal account, if it wasn't created at sign-up
-//! due to their sign-up identity's name being already taken or reserved, or a
-//! new org account, which makes the user its owner.
+//! Creates an org account owned by the user the request's token acts as, or the
+//! user's personal account if sign-up didn't create it because its name was
+//! taken or reserved.
 
 use http::Method;
 use sub60_endpoints_common::{AccountName, Created, Json, WithMessage, error};

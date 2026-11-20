@@ -27,8 +27,7 @@ use sub60_endpoints_common::{
     PathParams,
 };
 
-/// The path parameters identifying a cache, which the paths of all the cache's
-/// endpoints start with.
+/// The path parameters identifying a cache.
 #[derive(Debug, Clone, PartialEq, Eq, PathParams)]
 #[route("/{account}/{cache}")]
 pub struct CachePath {

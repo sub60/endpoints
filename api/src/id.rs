@@ -21,6 +21,7 @@ enum IdKind {
     CiJobGrant = 5,
     MachineGrant = 6,
     UserGrant = 7,
+    Invoice = 8,
 }
 
 /// The error returned when parsing text that isn't an ID of the expected kind.
@@ -117,6 +118,7 @@ macro_rules! id {
 
 id!(AccountId, IdKind::Account);
 id!(CacheId, IdKind::Cache);
+id!(InvoiceId, IdKind::Invoice);
 id!(UserId, IdKind::User);
 
 fn write_id(

@@ -42,6 +42,7 @@ pub struct Request {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, sub60_endpoints_common::Response)]
+#[expect(clippy::large_enum_variant)]
 pub enum Response {
     /// The plan was changed, or its change was scheduled for the next period,
     /// and any charge the change needed was paid.
