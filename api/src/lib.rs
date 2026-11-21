@@ -20,13 +20,20 @@ pub mod auth_github_actions_token;
 pub mod auth_github_callback;
 pub mod auth_github_login;
 mod billing;
+mod expiration;
 mod id;
 mod session;
 pub mod storage_size;
 pub mod user_delete;
 pub mod user_get;
+pub mod user_session_current_delete;
+pub mod user_session_delete;
 pub mod user_session_list;
 mod user_token;
+pub mod user_token_create;
+pub mod user_token_delete;
+pub mod user_token_list;
+pub mod user_token_update;
 
 pub use account::{Account, AccountKind, AccountSummary};
 pub use billing::{
@@ -42,6 +49,7 @@ pub use billing::{
     PaymentMethod,
     Subscription,
 };
+pub use expiration::Expiration;
 pub use id::{
     AccountId,
     CacheId,
@@ -77,5 +85,11 @@ pub fn visit_endpoints<V: sub60_endpoints_common::EndpointVisitor>(
     visitor.visit::<storage_size::Endpoint>();
     visitor.visit::<user_delete::Endpoint>();
     visitor.visit::<user_get::Endpoint>();
+    visitor.visit::<user_session_current_delete::Endpoint>();
+    visitor.visit::<user_session_delete::Endpoint>();
     visitor.visit::<user_session_list::Endpoint>();
+    visitor.visit::<user_token_create::Endpoint>();
+    visitor.visit::<user_token_delete::Endpoint>();
+    visitor.visit::<user_token_list::Endpoint>();
+    visitor.visit::<user_token_update::Endpoint>();
 }
