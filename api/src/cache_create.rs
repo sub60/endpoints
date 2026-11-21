@@ -14,10 +14,10 @@ use sub60_endpoints_common::{
 
 use crate::{AccountId, Cache, InvalidPublicPermissions, cache_list};
 
+pub type Path = cache_list::Path;
+
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
-
-pub type Path = cache_list::Path;
 
 #[derive(
     Debug,

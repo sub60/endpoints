@@ -7,10 +7,10 @@ use sub60_endpoints_common::{Created, Json, Permission, WithMessage, error};
 
 use crate::{Expiration, UserToken, user_token_list};
 
+pub type Path = user_token_list::Path;
+
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
-
-pub type Path = user_token_list::Path;
 
 #[derive(
     Debug,

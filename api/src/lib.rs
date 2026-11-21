@@ -22,6 +22,7 @@ pub mod auth_github_login;
 mod billing;
 mod cache;
 pub mod cache_create;
+pub mod cache_delete;
 pub mod cache_get;
 pub mod cache_list;
 pub mod cache_update;
@@ -89,6 +90,7 @@ pub fn visit_endpoints<V: sub60_endpoints_common::EndpointVisitor>(
     visitor.visit::<auth_github_callback::Endpoint>();
     visitor.visit::<auth_github_login::Endpoint>();
     visitor.visit::<cache_create::Endpoint>();
+    visitor.visit::<cache_delete::Endpoint>();
     visitor.visit::<cache_get::Endpoint>();
     visitor.visit::<cache_list::Endpoint>();
     visitor.visit::<cache_update::Endpoint>();

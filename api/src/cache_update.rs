@@ -7,10 +7,10 @@ use sub60_endpoints_common::{Json, Ok, Permission, WithMessage, error};
 
 use crate::{Cache, InvalidPublicPermissions, cache_get};
 
+pub type Path = cache_get::Path;
+
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
-
-pub type Path = cache_get::Path;
 
 #[derive(
     Debug,

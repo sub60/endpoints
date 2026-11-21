@@ -7,10 +7,10 @@ use sub60_endpoints_common::{Json, NoContent, WithMessage, error};
 
 use crate::account_get;
 
+pub type Path = account_get::Path;
+
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
-
-pub type Path = account_get::Path;
 
 #[derive(
     Debug,

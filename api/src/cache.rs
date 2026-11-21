@@ -60,7 +60,6 @@ pub struct Cache {
 )]
 #[display("only PullFromCache and ListCachePaths can be public permissions")]
 pub struct InvalidPublicPermissions {
-    /// The permissions other than `PullFromCache` and `ListCachePaths`.
     pub invalid: Vec<Permission>,
 }
 

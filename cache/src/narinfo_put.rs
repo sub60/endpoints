@@ -9,11 +9,10 @@ use sub60_endpoints_common::{Created, Ok};
 
 use crate::narinfo_get::{self, NarInfoBody};
 
+pub type Path = narinfo_get::Path;
+
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
-
-/// The path parameters of the endpoint's requests.
-pub type Path = narinfo_get::Path;
 
 #[derive(
     Debug, Copy, Clone, PartialEq, Eq, sub60_endpoints_common::Response,

@@ -9,10 +9,10 @@ use sub60_endpoints_common::{AccountName, Created, Json, WithMessage, error};
 
 use crate::{Account, AccountKind, account_list};
 
+pub type Path = account_list::Path;
+
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
-
-pub type Path = account_list::Path;
 
 #[derive(
     Debug,
