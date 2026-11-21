@@ -12,7 +12,7 @@ use sub60_endpoints_common::{
     error,
 };
 
-use crate::{AccountId, Cache, cache_list};
+use crate::{AccountId, Cache, InvalidPublicPermissions, cache_list};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
@@ -51,6 +51,7 @@ pub enum Error {
     Forbidden(error::Forbidden),
     /// The account doesn't exist, or the caller can't see it.
     NotFound(error::NotFound),
+    InvalidPublicPermissions(InvalidPublicPermissions),
     /// The account already has a cache with the name, ignoring case.
     #[display("the account already has a cache with that name")]
     #[status(CONFLICT)]

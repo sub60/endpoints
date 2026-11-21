@@ -24,6 +24,7 @@ mod cache;
 pub mod cache_create;
 pub mod cache_get;
 pub mod cache_list;
+pub mod cache_update;
 mod expiration;
 mod id;
 mod session;
@@ -53,7 +54,7 @@ pub use billing::{
     PaymentMethod,
     Subscription,
 };
-pub use cache::{Cache, PublicKey};
+pub use cache::{Cache, InvalidPublicPermissions, PublicKey};
 pub use expiration::Expiration;
 pub use id::{
     AccountId,
@@ -90,6 +91,7 @@ pub fn visit_endpoints<V: sub60_endpoints_common::EndpointVisitor>(
     visitor.visit::<cache_create::Endpoint>();
     visitor.visit::<cache_get::Endpoint>();
     visitor.visit::<cache_list::Endpoint>();
+    visitor.visit::<cache_update::Endpoint>();
     visitor.visit::<storage_size::Endpoint>();
     visitor.visit::<user_delete::Endpoint>();
     visitor.visit::<user_get::Endpoint>();

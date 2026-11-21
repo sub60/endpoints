@@ -1,3 +1,4 @@
+use http::StatusCode;
 use sub60_endpoints_common::{CacheName, Permission, Timestamp};
 use url::Url;
 
@@ -42,4 +43,27 @@ pub struct Cache {
     /// reference, or `None` if the request's principal isn't a member of the
     /// cache's account.
     pub size_bytes: Option<u64>,
+}
+
+/// A cache request's `public_permissions` lists permissions other than
+/// [`PullFromCache`](Permission::PullFromCache) and
+/// [`ListCachePaths`](Permission::ListCachePaths).
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    derive_more::Display,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+#[display("only PullFromCache and ListCachePaths can be public permissions")]
+pub struct InvalidPublicPermissions {
+    /// The permissions other than `PullFromCache` and `ListCachePaths`.
+    pub invalid: Vec<Permission>,
+}
+
+impl sub60_endpoints_common::Error for InvalidPublicPermissions {
+    const STATUS: StatusCode = StatusCode::BAD_REQUEST;
 }
