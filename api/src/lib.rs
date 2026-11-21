@@ -21,9 +21,12 @@ pub mod auth_github_callback;
 pub mod auth_github_login;
 mod billing;
 mod id;
+mod session;
 pub mod storage_size;
 pub mod user_delete;
 pub mod user_get;
+pub mod user_session_list;
+mod user_token;
 
 pub use account::{Account, AccountKind, AccountSummary};
 pub use billing::{
@@ -39,7 +42,17 @@ pub use billing::{
     PaymentMethod,
     Subscription,
 };
-pub use id::{AccountId, CacheId, IdFromStrError, InvoiceId, UserId};
+pub use id::{
+    AccountId,
+    CacheId,
+    IdFromStrError,
+    InvoiceId,
+    SessionId,
+    UserId,
+    UserTokenId,
+};
+pub use session::Session;
+pub use user_token::UserToken;
 
 /// Calls the visitor on each of the API's endpoints.
 pub fn visit_endpoints<V: sub60_endpoints_common::EndpointVisitor>(
@@ -64,4 +77,5 @@ pub fn visit_endpoints<V: sub60_endpoints_common::EndpointVisitor>(
     visitor.visit::<storage_size::Endpoint>();
     visitor.visit::<user_delete::Endpoint>();
     visitor.visit::<user_get::Endpoint>();
+    visitor.visit::<user_session_list::Endpoint>();
 }
