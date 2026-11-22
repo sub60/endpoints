@@ -2,6 +2,8 @@ use http::StatusCode;
 pub use sub60_endpoints_macros::Response;
 
 use crate::Body;
+#[cfg(feature = "axum")]
+use crate::Json;
 
 /// A `200 OK` response.
 pub type Ok<B = ()> = WithStatus<200, B>;
@@ -112,5 +114,16 @@ where
     #[inline]
     fn into_response(self) -> axum::response::Response {
         (Self::STATUS, self.0).into_response()
+    }
+}
+
+#[cfg(feature = "axum")]
+impl<const S: u16, T> axum::response::IntoResponse for WithStatus<S, Json<T>>
+where
+    T: serde::Serialize,
+{
+    #[inline]
+    fn into_response(self) -> axum::response::Response {
+        (Self::STATUS, axum::Json(self.0.0)).into_response()
     }
 }

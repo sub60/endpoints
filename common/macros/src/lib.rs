@@ -33,6 +33,10 @@ pub fn path_params(input: TokenStream) -> TokenStream {
 }
 
 /// Derives `Response` for an enum.
+///
+/// With the `axum` feature, it also implements axum's `IntoResponse` for the
+/// enums whose variants all hold types implementing it, or have a
+/// `#[status(..)]`.
 #[proc_macro_derive(Response, attributes(status))]
 pub fn response(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);

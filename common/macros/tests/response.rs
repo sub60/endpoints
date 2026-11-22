@@ -1,4 +1,5 @@
-use http::StatusCode;
+use axum::response::IntoResponse;
+use http::{StatusCode, header};
 use schemars::{Schema, SchemaGenerator};
 use sub60_endpoints_common::{
     Body,
@@ -25,7 +26,7 @@ enum GetResponse<B: Body> {
 }
 
 #[derive(Response)]
-#[expect(dead_code, reason = "the enum is only visited")]
+#[expect(dead_code, reason = "only `Gone` is constructed")]
 enum DocumentedResponse {
     /// The value was created.
     ///
@@ -84,6 +85,17 @@ fn status_is_the_variants() {
         StatusCode::OK
     );
     assert_eq!(PutResponse::Gone(WithStatus(())).status(), StatusCode::GONE);
+}
+
+#[test]
+fn into_response_is_the_variants() {
+    let created = PutResponse::Created(WithStatus(Json(1))).into_response();
+    assert_eq!(created.status(), StatusCode::CREATED);
+    assert_eq!(created.headers()[header::CONTENT_TYPE], "application/json");
+
+    let gone = DocumentedResponse::Gone.into_response();
+    assert_eq!(gone.status(), StatusCode::GONE);
+    assert!(!gone.headers().contains_key(header::CONTENT_TYPE));
 }
 
 #[test]

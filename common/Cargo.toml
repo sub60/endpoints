@@ -7,7 +7,7 @@ edition.workspace = true
 axum = ["dep:axum", "sub60-endpoints-macros/axum"]
 
 [dependencies]
-axum = { workspace = true, optional = true }
+axum = { workspace = true, optional = true, features = ["json"] }
 cauchy = { workspace = true }
 const_format = { workspace = true }
 derive_more = { workspace = true, features = ["display"] }

@@ -20,11 +20,12 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
         ));
     }
 
-    // The type of each variant's response, the arm matching the variant in
-    // `status()`, and the statement visiting the variant in `visit()`.
     let mut types = Vec::<syn::Type>::new();
     let mut arms = Vec::new();
     let mut visits = Vec::new();
+    let mut into_response_arms = Vec::new();
+
+    let mut held_types = Vec::new();
 
     for variant in &data.variants {
         let ident = &variant.ident;
@@ -44,9 +45,16 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
         match (&variant.fields, status) {
             (Fields::Unnamed(fields), None) if fields.unnamed.len() == 1 => {
                 types.push(fields.unnamed[0].ty.clone());
+                held_types.push(fields.unnamed[0].ty.clone());
                 arms.push(quote! {
                     Self::#ident(response) => {
                         #krate::Response::status(response)
+                    }
+                });
+                into_response_arms.push(quote! {
+                    Self::#ident(response) => {
+                        #krate::__private::axum::response::IntoResponse
+                            ::into_response(response)
                     }
                 });
             },
@@ -66,6 +74,12 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
                     #krate::WithStatus<{ #status.as_u16() }>
                 });
                 arms.push(quote!(Self::#ident { .. } => #status));
+                into_response_arms.push(quote! {
+                    Self::#ident { .. } => {
+                        #krate::__private::axum::response::IntoResponse
+                            ::into_response(#status)
+                    }
+                });
             },
             (_, None) => {
                 return Err(syn::Error::new_spanned(
@@ -106,7 +120,44 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
 
     let indices = 0..types.len();
 
+    let into_response_impl = if cfg!(feature = "axum") {
+        let mut generics = input.generics.clone();
+        let where_clause = generics.make_where_clause();
+
+        // The bounds are higher-ranked because a bound on a concrete type that
+        // doesn't hold is a compile error, and the types held by an error
+        // enum's variants often don't implement `IntoResponse`.
+        for ty in &held_types {
+            where_clause.predicates.push(parse_quote! {
+                for<'__r> #ty: #krate::__private::axum::response::IntoResponse
+            });
+        }
+
+        let (impl_generics, ty_generics, where_clause) =
+            generics.split_for_impl();
+
+        quote! {
+            impl #impl_generics #krate::__private::axum::response::IntoResponse
+                for #name #ty_generics
+                #where_clause
+            {
+                #[inline]
+                fn into_response(
+                    self,
+                ) -> #krate::__private::axum::response::Response {
+                    match self {
+                        #(#into_response_arms,)*
+                    }
+                }
+            }
+        }
+    } else {
+        TokenStream::new()
+    };
+
     Ok(quote! {
+        #into_response_impl
+
         impl #impl_generics #krate::Response for #name #ty_generics
             #where_clause
         {
