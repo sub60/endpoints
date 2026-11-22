@@ -229,6 +229,25 @@ impl<T: JsonSchema> Body for Json<T> {
     }
 }
 
+#[cfg(feature = "axum")]
+impl<S, T> axum::extract::FromRequest<S> for Json<T>
+where
+    S: Send + Sync,
+    T: serde::de::DeserializeOwned,
+{
+    type Rejection = axum::extract::rejection::JsonRejection;
+
+    #[inline]
+    async fn from_request(
+        request: axum::extract::Request,
+        state: &S,
+    ) -> Result<Self, Self::Rejection> {
+        axum::Json::from_request(request, state)
+            .await
+            .map(|axum::Json(value)| Self(value))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
