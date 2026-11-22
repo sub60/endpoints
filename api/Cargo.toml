@@ -6,6 +6,7 @@ edition.workspace = true
 [dependencies]
 derive_more = { workspace = true, features = ["display"] }
 http = { workspace = true }
+nix-types = { workspace = true, features = ["schemars"] }
 schemars = { workspace = true, features = ["url2"] }
 serde = { workspace = true, features = ["derive"] }
 sub60-endpoints-common = { workspace = true }

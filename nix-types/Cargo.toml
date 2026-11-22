@@ -3,6 +3,9 @@ name = "nix-types"
 version.workspace = true
 edition.workspace = true
 
+[features]
+schemars = ["dep:schemars"]
+
 [dependencies]
 base64 = { workspace = true }
 cauchy = { workspace = true }
@@ -13,6 +16,8 @@ rand_core = { workspace = true }
 serde = { workspace = true }
 smallvec = { workspace = true }
 smol_str = { workspace = true, features = ["serde"] }
+
+schemars = { workspace = true, optional = true }
 
 [lints]
 workspace = true

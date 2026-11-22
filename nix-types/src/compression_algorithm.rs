@@ -151,6 +151,43 @@ impl FromStr for CompressionAlgorithm {
     }
 }
 
+impl serde::ser::Serialize for CompressionAlgorithm {
+    #[inline]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+impl<'de> serde::de::Deserialize<'de> for CompressionAlgorithm {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        Cow::<'de, str>::deserialize(deserializer)?
+            .parse()
+            .map_err(serde::de::Error::custom)
+    }
+}
+
+#[cfg(feature = "schemars")]
+impl schemars::JsonSchema for CompressionAlgorithm {
+    fn schema_name() -> Cow<'static, str> {
+        "CompressionAlgorithm".into()
+    }
+
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        let names = Self::variants().map(Self::as_str);
+        schemars::json_schema!({
+            "description": "The algorithm a NAR is compressed with.",
+            "type": "string",
+            "enum": names,
+        })
+    }
+}
+
 impl fmt::Display for CompressionExtension {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.as_str().fmt(f)

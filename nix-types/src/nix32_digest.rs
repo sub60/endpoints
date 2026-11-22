@@ -149,6 +149,30 @@ impl<'de, const NUM_BYTES: usize> serde::de::Deserialize<'de>
     }
 }
 
+#[cfg(feature = "schemars")]
+impl<const NUM_BYTES: usize> schemars::JsonSchema for Nix32Digest<NUM_BYTES> {
+    fn inline_schema() -> bool {
+        true
+    }
+
+    fn schema_name() -> Cow<'static, str> {
+        "Nix32Digest".into()
+    }
+
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "description": alloc::format!(
+                "A {NUM_BYTES}-byte digest in Nix's base32 alphabet."
+            ),
+            "type": "string",
+            "pattern": alloc::format!(
+                "^[0-9a-df-np-sv-z]{{{}}}$",
+                Self::NUM_CHARACTERS
+            ),
+        })
+    }
+}
+
 const fn num_chars_of_bytes(num_bytes: usize) -> usize {
     (num_bytes * 8 - 1) / 5 + 1
 }

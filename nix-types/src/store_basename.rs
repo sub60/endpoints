@@ -93,3 +93,18 @@ impl<'de> serde::de::Deserialize<'de> for StoreBasename {
             .map_err(serde::de::Error::custom)
     }
 }
+
+#[cfg(feature = "schemars")]
+impl schemars::JsonSchema for StoreBasename {
+    fn schema_name() -> Cow<'static, str> {
+        "StoreBasename".into()
+    }
+
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "description": "A store path's basename, e.g. `…-hello-2.12.1`.",
+            "type": "string",
+            "pattern": "^[0-9a-df-np-sv-z]{32}-[0-9A-Za-z+._?=-]+$",
+        })
+    }
+}

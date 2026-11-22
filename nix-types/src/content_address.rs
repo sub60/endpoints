@@ -1,10 +1,11 @@
+use alloc::borrow::Cow;
 use core::fmt;
 use core::str::FromStr;
 
 use crate::NixHash;
 
 /// TODO: docs.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct ContentAddress {
     method: ContentAddressMethod,
     hash: NixHash,
@@ -105,6 +106,41 @@ impl FromStr for ContentAddress {
             .map_err(ContentAddressFromStrError::Hash)?;
 
         Ok(Self { method, hash })
+    }
+}
+
+impl serde::ser::Serialize for ContentAddress {
+    #[inline]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.collect_str(self)
+    }
+}
+
+impl<'de> serde::de::Deserialize<'de> for ContentAddress {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        Cow::<'de, str>::deserialize(deserializer)?
+            .parse()
+            .map_err(serde::de::Error::custom)
+    }
+}
+
+#[cfg(feature = "schemars")]
+impl schemars::JsonSchema for ContentAddress {
+    fn schema_name() -> Cow<'static, str> {
+        "ContentAddress".into()
+    }
+
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "description": "A store path's content address, e.g. `fixed:r:sha256:…`.",
+            "type": "string",
+        })
     }
 }
 

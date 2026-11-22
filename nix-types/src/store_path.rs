@@ -116,6 +116,16 @@ impl<StoreDir: FromStr> FromStr for StorePath<StoreDir> {
     }
 }
 
+impl<StoreDir: Display> serde::ser::Serialize for StorePath<StoreDir> {
+    #[inline]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.collect_str(self)
+    }
+}
+
 impl<'de, StoreDir> serde::de::Deserialize<'de> for StorePath<StoreDir>
 where
     StoreDir: FromStr<Err: fmt::Display>,
@@ -127,5 +137,20 @@ where
         Cow::<'de, str>::deserialize(deserializer)?
             .parse()
             .map_err(serde::de::Error::custom)
+    }
+}
+
+#[cfg(feature = "schemars")]
+impl<StoreDir> schemars::JsonSchema for StorePath<StoreDir> {
+    fn schema_name() -> Cow<'static, str> {
+        "StorePath".into()
+    }
+
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "description": "A Nix store path, e.g. `/nix/store/…-hello-2.12.1`.",
+            "type": "string",
+            "pattern": "^.*/[0-9a-df-np-sv-z]{32}-[0-9A-Za-z+._?=-]+$",
+        })
     }
 }
