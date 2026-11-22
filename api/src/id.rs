@@ -11,7 +11,6 @@ const NUM_DIGITS_AFTER_KIND: usize = 21;
 // must never change, be reused after the kind is removed, or be >= 62.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(u8)]
-#[expect(dead_code, reason = "the kinds without an ID type yet")]
 enum IdKind {
     User = 0,
     Account = 1,
@@ -119,11 +118,88 @@ macro_rules! id {
 
 id!(AccountId, IdKind::Account);
 id!(CacheId, IdKind::Cache);
+id!(CiJobGrantId, IdKind::CiJobGrant);
 id!(InvoiceId, IdKind::Invoice);
+id!(MachineGrantId, IdKind::MachineGrant);
 id!(MachineTokenId, IdKind::MachineToken);
 id!(SessionId, IdKind::Session);
+id!(UserGrantId, IdKind::UserGrant);
 id!(UserId, IdKind::User);
 id!(UserTokenId, IdKind::UserToken);
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum GrantId {
+    CiJob(CiJobGrantId),
+    Machine(MachineGrantId),
+    User(UserGrantId),
+}
+
+impl fmt::Display for GrantId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::CiJob(id) => id.fmt(f),
+            Self::Machine(id) => id.fmt(f),
+            Self::User(id) => id.fmt(f),
+        }
+    }
+}
+
+impl FromStr for GrantId {
+    type Err = IdFromStrError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let kind = s.bytes().next().ok_or(IdFromStrError)?;
+        let is = |id_kind: IdKind| kind == BASE62_ALPHABET[id_kind as usize];
+
+        if is(CiJobGrantId::KIND) {
+            s.parse().map(Self::CiJob)
+        } else if is(MachineGrantId::KIND) {
+            s.parse().map(Self::Machine)
+        } else if is(UserGrantId::KIND) {
+            s.parse().map(Self::User)
+        } else {
+            Err(IdFromStrError)
+        }
+    }
+}
+
+impl serde::Serialize for GrantId {
+    fn serialize<S: serde::Serializer>(
+        &self,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        serializer.collect_str(self)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for GrantId {
+    fn deserialize<D: serde::Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<Self, D::Error> {
+        Cow::<'de, str>::deserialize(deserializer)?
+            .parse()
+            .map_err(serde::de::Error::custom)
+    }
+}
+
+impl schemars::JsonSchema for GrantId {
+    fn schema_name() -> Cow<'static, str> {
+        "GrantId".into()
+    }
+
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        let kinds =
+            [CiJobGrantId::KIND, MachineGrantId::KIND, UserGrantId::KIND]
+                .map(|kind| char::from(BASE62_ALPHABET[kind as usize]))
+                .into_iter()
+                .collect::<alloc::string::String>();
+
+        schemars::json_schema!({
+            "type": "string",
+            "pattern": format!("^[{kinds}][0-9A-Za-z]{{21}}$"),
+        })
+    }
+}
 
 fn write_id(
     kind: IdKind,

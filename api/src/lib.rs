@@ -37,6 +37,7 @@ pub mod cache_path_get;
 pub mod cache_path_list;
 pub mod cache_update;
 mod expiration;
+mod grant;
 mod id;
 mod machine_token;
 mod path_info;
@@ -69,13 +70,18 @@ pub use billing::{
 };
 pub use cache::{Cache, CacheUsage, InvalidPublicPermissions, PublicKey};
 pub use expiration::Expiration;
+pub use grant::{CiJobs, Grant, Principal, Target};
 pub use id::{
     AccountId,
     CacheId,
+    CiJobGrantId,
+    GrantId,
     IdFromStrError,
     InvoiceId,
+    MachineGrantId,
     MachineTokenId,
     SessionId,
+    UserGrantId,
     UserId,
     UserTokenId,
 };
