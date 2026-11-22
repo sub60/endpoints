@@ -20,6 +20,7 @@ use crate::{Response, ResponseVisitor, error};
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum RequestError {
     InvalidRequest(error::InvalidRequest),
+    PayloadTooLarge(error::PayloadTooLarge),
     NotFound(error::NotFound),
     MethodNotAllowed(error::MethodNotAllowed),
     Internal(error::Internal),
@@ -28,6 +29,9 @@ pub enum RequestError {
 impl From<StatusCode> for RequestError {
     fn from(status: StatusCode) -> Self {
         match status {
+            StatusCode::PAYLOAD_TOO_LARGE => {
+                Self::PayloadTooLarge(error::PayloadTooLarge)
+            },
             StatusCode::NOT_FOUND => Self::NotFound(error::NotFound),
             StatusCode::METHOD_NOT_ALLOWED => {
                 Self::MethodNotAllowed(error::MethodNotAllowed)
@@ -45,6 +49,7 @@ impl Response for RequestError {
     fn status(&self) -> StatusCode {
         match self {
             Self::InvalidRequest(error) => error.status(),
+            Self::PayloadTooLarge(error) => error.status(),
             Self::NotFound(error) => error.status(),
             Self::MethodNotAllowed(error) => error.status(),
             Self::Internal(error) => error.status(),
@@ -54,6 +59,7 @@ impl Response for RequestError {
     #[inline]
     fn visit<V: ResponseVisitor>(visitor: &mut V) {
         error::InvalidRequest::visit(visitor);
+        error::PayloadTooLarge::visit(visitor);
         error::NotFound::visit(visitor);
         error::MethodNotAllowed::visit(visitor);
         error::Internal::visit(visitor);
@@ -62,8 +68,9 @@ impl Response for RequestError {
     #[inline]
     fn visit_variants<V: VariantVisitor>(visitor: &mut V) {
         visitor.visit::<error::InvalidRequest, 0>();
-        visitor.visit::<error::NotFound, 1>();
-        visitor.visit::<error::MethodNotAllowed, 2>();
-        visitor.visit::<error::Internal, 3>();
+        visitor.visit::<error::PayloadTooLarge, 1>();
+        visitor.visit::<error::NotFound, 2>();
+        visitor.visit::<error::MethodNotAllowed, 3>();
+        visitor.visit::<error::Internal, 4>();
     }
 }

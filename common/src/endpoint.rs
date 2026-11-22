@@ -10,6 +10,9 @@ pub trait Endpoint {
     /// The template of the endpoint's path.
     const PATH: &'static str = <Self::Path as PathParams>::PATH;
 
+    /// The maximum byte length of the endpoint's request bodies.
+    const MAX_BODY_LEN: usize = 64 * 1024;
+
     /// The parameters in the endpoint's path.
     type Path: PathParams;
 

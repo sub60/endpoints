@@ -93,6 +93,22 @@ pub struct InvalidRequest;
 #[display("the request's cursor is invalid")]
 pub struct InvalidCursor;
 
+/// The request's body is longer than the endpoint can accept.
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    derive_more::Display,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+#[display("the request's body is too long")]
+pub struct PayloadTooLarge;
+
 /// The endpoint at the request's path doesn't take the request's method.
 #[derive(
     Debug,
@@ -156,6 +172,10 @@ impl Error for InvalidRequest {
 
 impl Error for InvalidCursor {
     const STATUS: StatusCode = StatusCode::BAD_REQUEST;
+}
+
+impl Error for PayloadTooLarge {
+    const STATUS: StatusCode = StatusCode::PAYLOAD_TOO_LARGE;
 }
 
 impl Error for MethodNotAllowed {
