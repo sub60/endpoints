@@ -36,13 +36,31 @@ pub struct Cache {
     /// The permissions the request's principal has on the cache.
     pub my_permissions: Vec<Permission>,
     pub created_at: Timestamp,
-    /// The number of store paths in the cache, or `None` if the request's
-    /// principal isn't a member of the cache's account.
-    pub path_count: Option<u64>,
+    /// The cache's usage, or `None` if the request's principal isn't a member
+    /// of the cache's account.
+    pub usage: Option<CacheUsage>,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+pub struct CacheUsage {
     /// The total byte size of the cache's NARInfos and of the NARs they
-    /// reference, or `None` if the request's principal isn't a member of the
-    /// cache's account.
-    pub size_bytes: Option<u64>,
+    /// reference.
+    pub bytes: u64,
+    /// The part of `bytes` that no other cache of the account references, i.e.
+    /// what deleting the cache would free.
+    pub exclusive_bytes: u64,
+    /// The number of store paths in the cache.
+    pub path_count: u64,
+    /// The time this usage was measured at.
+    pub measured_at: Timestamp,
 }
 
 /// A cache request's `public_permissions` lists permissions other than
