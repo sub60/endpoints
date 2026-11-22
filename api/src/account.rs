@@ -50,4 +50,5 @@ pub enum AccountKind {
 pub struct AccountSummary {
     pub id: AccountId,
     pub name: AccountName,
+    pub kind: AccountKind,
 }

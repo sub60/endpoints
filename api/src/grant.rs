@@ -1,7 +1,7 @@
 use http::StatusCode;
 use sub60_endpoints_common::{Permission, Timestamp};
 
-use crate::{AccountId, CacheId, GrantId, MachineTokenId, UserId};
+use crate::{AccountId, CacheId, GrantId, MachineTokenId};
 
 /// A principal's permissions on an account or a cache.
 #[derive(
@@ -18,7 +18,7 @@ pub struct Grant {
     pub principal: Principal,
     pub target: Target,
     pub permissions: Vec<Permission>,
-    pub created_by: UserId,
+    pub created_by: AccountId,
     pub created_at: Timestamp,
 }
 
@@ -33,7 +33,7 @@ pub struct Grant {
 )]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Principal {
-    User { id: UserId },
+    User { id: AccountId },
     MachineToken { id: MachineTokenId },
     CiJob(CiJobs),
 }
@@ -88,7 +88,10 @@ pub enum Target {
     serde::Deserialize,
     schemars::JsonSchema,
 )]
-#[display("a grant on a cache can only have cache permissions")]
+#[display(
+    "the grant is on a cache, but some of its permissions only exist on \
+     accounts"
+)]
 pub struct InvalidGrantPermissions {
     pub invalid: Vec<Permission>,
 }

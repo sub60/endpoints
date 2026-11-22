@@ -1,8 +1,6 @@
 //! The `POST /accounts` endpoint.
 //!
-//! Creates an org account owned by the user the request's token acts as, or the
-//! user's personal account if sign-up didn't create it because its name was
-//! taken or reserved.
+//! Creates an org or the caller's personal account.
 
 use http::Method;
 use sub60_endpoints_common::{
@@ -57,6 +55,12 @@ pub enum Error {
     #[display("the user already has a personal account")]
     #[status(CONFLICT)]
     PersonalAccountExists,
+    /// The request asks for an org, but the user has no personal account yet.
+    #[display(
+        "the request creates an org, but the user has no personal account yet"
+    )]
+    #[status(CONFLICT)]
+    PersonalAccountRequired,
     Internal(error::Internal),
 }
 
