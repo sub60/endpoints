@@ -25,7 +25,7 @@ pub enum NarInfoFileNameFromStrError {
 
 impl fmt::Display for NarInfoFileName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}.narinfo", self.store_hash.as_str())
+        write!(f, "{}.narinfo", self.store_hash)
     }
 }
 

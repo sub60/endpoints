@@ -138,7 +138,7 @@ mod tests {
     #[test]
     fn content_address_from_str() {
         for method in ContentAddressMethod::iter() {
-            let hash = NixHash::Sha256(Nix32Digest::new(&[0u8; 32]));
+            let hash = NixHash::Sha256(Nix32Digest::new([0u8; 32]));
 
             let parsed = format!("{}:{}", method.as_str(), hash)
                 .parse::<ContentAddress>()

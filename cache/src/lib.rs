@@ -1,8 +1,5 @@
 //! The endpoints of `cache.sub60.dev`.
 
-#![allow(incomplete_features)]
-#![feature(generic_const_exprs)]
-
 extern crate alloc;
 
 mod etag;

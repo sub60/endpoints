@@ -107,11 +107,11 @@ mod tests {
     #[test]
     fn nix_hash_display_from_str_roundtrip() {
         let hashes = [
-            NixHash::Md5(Nix32Digest::new(&[1; 16])),
-            NixHash::Sha1(Nix32Digest::new(&[2; 20])),
-            NixHash::Sha256(Nix32Digest::new(&[3; 32])),
-            NixHash::Sha512(Nix32Digest::new(&[4; 64])),
-            NixHash::Blake3(Nix32Digest::new(&[5; 32])),
+            NixHash::Md5(Nix32Digest::new([1; 16])),
+            NixHash::Sha1(Nix32Digest::new([2; 20])),
+            NixHash::Sha256(Nix32Digest::new([3; 32])),
+            NixHash::Sha512(Nix32Digest::new([4; 64])),
+            NixHash::Blake3(Nix32Digest::new([5; 32])),
         ];
 
         for hash in hashes {

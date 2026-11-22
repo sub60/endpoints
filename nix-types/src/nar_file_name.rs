@@ -46,7 +46,7 @@ pub enum NarFileNameFromStrError {
 
 impl fmt::Display for NarFileName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}.nar", self.file_hash.as_str())?;
+        write!(f, "{}.nar", self.file_hash)?;
         if let Some(ext) = self.extension {
             write!(f, ".{ext}")?;
         }

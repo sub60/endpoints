@@ -1,18 +1,14 @@
 use alloc::borrow::Cow;
-use core::fmt;
+use core::fmt::{self, Write};
 use core::str::FromStr;
 
 /// Nix's custom base32 alphabet for digests, which includes all digits and
 /// all lowercase letters except 'e', 'o', 't', and 'u'.
 const ALPHABET: &[u8; 32] = b"0123456789abcdfghijklmnpqrsvwxyz";
 
-/// TODO: docs.
+/// A digest of `NUM_BYTES` bytes written in Nix's base32 alphabet.
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
-pub struct Nix32Digest<const NUM_BYTES: usize>(
-    [u8; num_chars_of_bytes(NUM_BYTES)],
-)
-where
-    [(); num_chars_of_bytes(NUM_BYTES)]:;
+pub struct Nix32Digest<const NUM_BYTES: usize>([u8; NUM_BYTES]);
 
 /// The type of error that can occur when parsing a string into a
 /// [`Nix32Digest`].
@@ -20,7 +16,8 @@ where
     Debug, Copy, Clone, PartialEq, Eq, derive_more::Display, cauchy::Error,
 )]
 pub enum Nix32DigestFromStrError<const NUM_BYTES: usize> {
-    /// The string was not exactly 32 characters long.
+    /// The string doesn't have [`NUM_CHARACTERS`](Nix32Digest::NUM_CHARACTERS)
+    /// characters.
     #[display(
         "string must be exactly {} characters long",
         num_chars_of_bytes(NUM_BYTES)
@@ -42,37 +39,16 @@ pub enum Nix32DigestFromStrError<const NUM_BYTES: usize> {
     },
 }
 
-impl<const NUM_BYTES: usize> Nix32Digest<NUM_BYTES>
-where
-    [(); num_chars_of_bytes(NUM_BYTES)]:,
-{
-    /// TODO: docs.
+impl<const NUM_BYTES: usize> Nix32Digest<NUM_BYTES> {
+    /// The number of characters the digest is written with.
     pub const NUM_CHARACTERS: usize = num_chars_of_bytes(NUM_BYTES);
 
-    /// TODO: docs.
-    pub const fn as_str(&self) -> &str {
-        // SAFETY: todo.
-        unsafe { core::str::from_utf8_unchecked(&self.0) }
+    pub const fn new(bytes: [u8; NUM_BYTES]) -> Self {
+        Self(bytes)
     }
 
-    /// TODO: docs.
-    pub const fn new(bytes: &[u8; NUM_BYTES]) -> Self
-    where
-        [(); num_chars_of_bytes(NUM_BYTES)]:,
-    {
-        let mut chars = [0; _];
-        encode_bytes_into_chars(bytes, &mut chars);
-        Self(chars)
-    }
-
-    /// TODO: docs.
-    pub const fn to_bytes(&self) -> [u8; NUM_BYTES]
-    where
-        [(); num_chars_of_bytes(NUM_BYTES)]:,
-    {
-        let mut bytes = [0; _];
-        decode_chars_into_bytes(&self.0, &mut bytes);
-        bytes
+    pub const fn as_bytes(&self) -> &[u8; NUM_BYTES] {
+        &self.0
     }
 
     const fn is_byte_valid(byte: u8) -> bool {
@@ -113,112 +89,68 @@ where
     }
 }
 
-impl<const NUM_BYTES: usize> fmt::Debug for Nix32Digest<NUM_BYTES>
-where
-    [(); num_chars_of_bytes(NUM_BYTES)]:,
-{
+impl<const NUM_BYTES: usize> fmt::Debug for Nix32Digest<NUM_BYTES> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "\"{self}\"")
     }
 }
 
-impl<const NUM_BYTES: usize> fmt::Display for Nix32Digest<NUM_BYTES>
-where
-    [(); num_chars_of_bytes(NUM_BYTES)]:,
-{
+impl<const NUM_BYTES: usize> fmt::Display for Nix32Digest<NUM_BYTES> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.as_str())
+        // The characters encode the bytes' bits from the last to the first, 5
+        // at a time, so the first character holds the last byte's top bits.
+        for char_idx in 0..Self::NUM_CHARACTERS {
+            let b = (Self::NUM_CHARACTERS - char_idx - 1) * 5;
+            let i = b / 8;
+            let j = b % 8;
+
+            let mut c = self.0[i] >> j;
+            if j != 0 && i + 1 < NUM_BYTES {
+                c |= self.0[i + 1] << (8 - j);
+            }
+
+            f.write_char(char::from(ALPHABET[usize::from(c & 0x1f)]))?;
+        }
+
+        Ok(())
     }
 }
 
-impl<const NUM_BYTES: usize> AsRef<str> for Nix32Digest<NUM_BYTES>
-where
-    [(); num_chars_of_bytes(NUM_BYTES)]:,
+impl<const NUM_BYTES: usize> FromStr for Nix32Digest<NUM_BYTES> {
+    type Err = Nix32DigestFromStrError<NUM_BYTES>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::validate(s)?;
+        let mut bytes = [0; NUM_BYTES];
+        decode_chars_into_bytes(s.as_bytes(), &mut bytes);
+        Ok(Self(bytes))
+    }
+}
+
+impl<const NUM_BYTES: usize> serde::ser::Serialize for Nix32Digest<NUM_BYTES> {
+    #[inline]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.collect_str(self)
+    }
+}
+
+impl<'de, const NUM_BYTES: usize> serde::de::Deserialize<'de>
+    for Nix32Digest<NUM_BYTES>
 {
-    fn as_ref(&self) -> &str {
-        self.as_str()
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        let s = Cow::<'de, str>::deserialize(deserializer)?;
+        Self::from_str(&s).map_err(serde::de::Error::custom)
     }
 }
 
-// We can't have generic impls for FromStr and Deserialize over all NUM_BYTES
-// because rustc seems to choke on it (generic_const_exprs is an unstable
-// feature after all), so we need to implement them for the particular values of
-// NUM_BYTES that we care about.
-
-macro_rules! impl_from_str_for_nix32_digest {
-    ($num_bytes:literal) => {
-        impl FromStr for Nix32Digest<$num_bytes> {
-            type Err = Nix32DigestFromStrError<$num_bytes>;
-
-            fn from_str(s: &str) -> Result<Self, Self::Err> {
-                Self::validate(s)?;
-                let chars =
-                    s.as_bytes().try_into().expect("string has been validated");
-                Ok(Self(chars))
-            }
-        }
-    };
-}
-
-macro_rules! impl_serialize_for_nix32_digest {
-    ($num_bytes:literal) => {
-        impl serde::ser::Serialize for Nix32Digest<$num_bytes> {
-            #[inline]
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: serde::Serializer,
-            {
-                serializer.serialize_str(self.as_str())
-            }
-        }
-    };
-}
-
-macro_rules! impl_deserialize_for_nix32_digest {
-    ($num_bytes:literal) => {
-        impl<'de> serde::de::Deserialize<'de> for Nix32Digest<$num_bytes> {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: serde::de::Deserializer<'de>,
-            {
-                let s = Cow::<'de, str>::deserialize(deserializer)?;
-                Self::from_str(&s).map_err(serde::de::Error::custom)
-            }
-        }
-    };
-}
-
-impl_from_str_for_nix32_digest!(16);
-impl_from_str_for_nix32_digest!(20);
-impl_from_str_for_nix32_digest!(32);
-impl_from_str_for_nix32_digest!(64);
-
-impl_serialize_for_nix32_digest!(20);
-impl_serialize_for_nix32_digest!(32);
-
-impl_deserialize_for_nix32_digest!(20);
-impl_deserialize_for_nix32_digest!(32);
-
-#[doc(hidden)]
-pub const fn num_chars_of_bytes(num_bytes: usize) -> usize {
+const fn num_chars_of_bytes(num_bytes: usize) -> usize {
     (num_bytes * 8 - 1) / 5 + 1
-}
-
-const fn encode_bytes_into_chars(bytes: &[u8], chars: &mut [u8]) {
-    let mut char_idx = 0;
-    while char_idx < chars.len() {
-        let b = (chars.len() - char_idx - 1) * 5;
-        let i = b / 8;
-        let j = b % 8;
-
-        let mut c = bytes[i] >> j;
-        if j != 0 && i + 1 < bytes.len() {
-            c |= bytes[i + 1] << (8 - j);
-        }
-
-        chars[char_idx] = ALPHABET[(c & 0x1f) as usize];
-        char_idx += 1;
-    }
 }
 
 const fn decode_chars_into_bytes(chars: &[u8], bytes: &mut [u8]) {
@@ -254,4 +186,47 @@ const fn decode_digit(byte: u8) -> u8 {
     }
 
     panic!("Nix32Digest is always validated")
+}
+
+#[cfg(test)]
+mod tests {
+    use alloc::string::ToString;
+
+    use super::*;
+
+    /// The SHA-256 of the empty string and what `nix hash convert --to
+    /// nix32` prints for it.
+    const EMPTY_SHA256: ([u8; 32], &str) = (
+        [
+            0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4,
+            0xc8, 0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b,
+            0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55,
+        ],
+        "0mdqa9w1p6cmli6976v4wi0sw9r4p5prkj7lzfd1877wk11c9c73",
+    );
+
+    #[test]
+    fn display_matches_nix() {
+        let (bytes, nix32) = EMPTY_SHA256;
+        assert_eq!(Nix32Digest::new(bytes).to_string(), nix32);
+    }
+
+    #[test]
+    fn from_str_matches_nix() {
+        let (bytes, nix32) = EMPTY_SHA256;
+        assert_eq!(
+            nix32.parse::<Nix32Digest<32>>().unwrap().as_bytes(),
+            &bytes
+        );
+    }
+
+    #[test]
+    fn display_from_str_roundtrip() {
+        for bytes in [[0; 20], [0xff; 20], *b"0123456789abcdefghij"] {
+            let digest = Nix32Digest::new(bytes);
+            let text = digest.to_string();
+            assert_eq!(text.len(), Nix32Digest::<20>::NUM_CHARACTERS);
+            assert_eq!(text.parse::<Nix32Digest<20>>(), Ok(digest));
+        }
+    }
 }

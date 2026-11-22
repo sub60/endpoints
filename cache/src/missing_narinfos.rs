@@ -65,9 +65,7 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
 impl fmt::Display for StoreHashes {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0
-            .iter()
-            .try_for_each(|store_hash| writeln!(f, "{}", store_hash.as_str()))
+        self.0.iter().try_for_each(|store_hash| writeln!(f, "{store_hash}"))
     }
 }
 
