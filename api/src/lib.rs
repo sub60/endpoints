@@ -15,6 +15,7 @@ pub mod account_create;
 pub mod account_delete;
 pub mod account_get;
 pub mod account_list;
+pub mod account_machine_token_list;
 pub mod account_name_get;
 pub mod account_usage_get;
 pub mod auth_github_actions_token;
@@ -32,6 +33,7 @@ pub mod cache_path_list;
 pub mod cache_update;
 mod expiration;
 mod id;
+mod machine_token;
 mod path_info;
 mod session;
 pub mod storage_size;
@@ -67,10 +69,12 @@ pub use id::{
     CacheId,
     IdFromStrError,
     InvoiceId,
+    MachineTokenId,
     SessionId,
     UserId,
     UserTokenId,
 };
+pub use machine_token::MachineToken;
 pub use path_info::PathInfo;
 pub use session::Session;
 pub use user_token::UserToken;
@@ -91,6 +95,7 @@ pub fn visit_endpoints<V: sub60_endpoints_common::EndpointVisitor>(
     visitor.visit::<account_delete::Endpoint>();
     visitor.visit::<account_get::Endpoint>();
     visitor.visit::<account_list::Endpoint>();
+    visitor.visit::<account_machine_token_list::Endpoint>();
     visitor.visit::<account_name_get::Endpoint>();
     visitor.visit::<account_usage_get::Endpoint>();
     visitor.visit::<auth_github_actions_token::Endpoint>();

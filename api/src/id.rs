@@ -120,6 +120,7 @@ macro_rules! id {
 id!(AccountId, IdKind::Account);
 id!(CacheId, IdKind::Cache);
 id!(InvoiceId, IdKind::Invoice);
+id!(MachineTokenId, IdKind::MachineToken);
 id!(SessionId, IdKind::Session);
 id!(UserId, IdKind::User);
 id!(UserTokenId, IdKind::UserToken);
