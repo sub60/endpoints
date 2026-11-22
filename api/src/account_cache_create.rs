@@ -1,4 +1,4 @@
-//! The `POST /caches` endpoint.
+//! The `POST /accounts/{account_id}/caches` endpoint.
 //!
 //! Creates a cache.
 
@@ -12,9 +12,9 @@ use sub60_endpoints_common::{
     error,
 };
 
-use crate::{AccountId, Cache, InvalidPublicPermissions, cache_list};
+use crate::{Cache, InvalidPublicPermissions, account_cache_list};
 
-pub type Path = cache_list::Path;
+pub type Path = account_cache_list::Path;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
@@ -30,7 +30,6 @@ pub struct Endpoint;
 )]
 #[schemars(rename = "CreateCacheRequest")]
 pub struct Request {
-    pub account: AccountId,
     pub name: CacheName,
     pub priority: u32,
     /// What anyone can do on the cache, with or without a token.

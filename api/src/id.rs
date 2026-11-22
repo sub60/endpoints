@@ -148,14 +148,11 @@ impl FromStr for GrantId {
     type Err = IdFromStrError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let kind = s.bytes().next().ok_or(IdFromStrError)?;
-        let is = |id_kind: IdKind| kind == BASE62_ALPHABET[id_kind as usize];
-
-        if is(CiJobGrantId::KIND) {
+        if has_kind(s, CiJobGrantId::KIND) {
             s.parse().map(Self::CiJob)
-        } else if is(MachineGrantId::KIND) {
+        } else if has_kind(s, MachineGrantId::KIND) {
             s.parse().map(Self::Machine)
-        } else if is(UserGrantId::KIND) {
+        } else if has_kind(s, UserGrantId::KIND) {
             s.parse().map(Self::User)
         } else {
             Err(IdFromStrError)
@@ -199,6 +196,10 @@ impl schemars::JsonSchema for GrantId {
             "pattern": format!("^[{kinds}][0-9A-Za-z]{{21}}$"),
         })
     }
+}
+
+fn has_kind(s: &str, kind: IdKind) -> bool {
+    s.as_bytes().first() == Some(&BASE62_ALPHABET[kind as usize])
 }
 
 fn write_id(

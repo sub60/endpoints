@@ -1,4 +1,4 @@
-//! The `GET /caches` endpoint.
+//! The `GET /accounts/{account_id}/caches` endpoint.
 //!
 //! Lists an account's caches, sorted by name.
 
@@ -6,7 +6,6 @@ use core::num::NonZeroU16;
 
 use http::Method;
 use sub60_endpoints_common::{
-    AccountName,
     CacheName,
     Cursor,
     Json,
@@ -17,14 +16,16 @@ use sub60_endpoints_common::{
     error,
 };
 
-use crate::Cache;
+use crate::{AccountId, Cache};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
-#[route("/caches")]
-pub struct Path;
+#[route("/accounts/{account_id}/caches")]
+pub struct Path {
+    pub account_id: AccountId,
+}
 
 #[derive(
     Debug,
@@ -36,7 +37,6 @@ pub struct Path;
     schemars::JsonSchema,
 )]
 pub struct Query {
-    pub account: AccountName,
     /// The name of the only cache to list.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<CacheName>,
@@ -71,6 +71,8 @@ pub struct Response {
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
     Unauthorized(error::Unauthorized),
+    /// The account doesn't exist, or the caller can't see it.
+    NotFound(error::NotFound),
     InvalidCursor(error::InvalidCursor),
     Internal(error::Internal),
 }

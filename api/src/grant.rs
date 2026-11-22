@@ -1,3 +1,4 @@
+use http::StatusCode;
 use sub60_endpoints_common::{Permission, Timestamp};
 
 use crate::{AccountId, CacheId, GrantId, MachineTokenId, UserId};
@@ -52,8 +53,10 @@ pub enum CiJobs {
         owner: String,
         /// The repo's name without its owner's. `None` matches all of the
         /// owner's repos.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
         repository: Option<String>,
         /// The Git ref (e.g. `refs/heads/main`). `None` matches any ref.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
         r#ref: Option<String>,
     },
 }
@@ -72,4 +75,24 @@ pub enum CiJobs {
 pub enum Target {
     Account { id: AccountId },
     Cache { id: CacheId },
+}
+
+/// A grant on a cache lists permissions that only exist on accounts.
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    derive_more::Display,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+#[display("a grant on a cache can only have cache permissions")]
+pub struct InvalidGrantPermissions {
+    pub invalid: Vec<Permission>,
+}
+
+impl sub60_endpoints_common::Error for InvalidGrantPermissions {
+    const STATUS: StatusCode = StatusCode::BAD_REQUEST;
 }

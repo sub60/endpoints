@@ -1,6 +1,6 @@
 //! The `GET /account-names/{name}` endpoint.
 //!
-//! Gets whether a given candidate name can be given to a new account.
+//! Gets an account name's availability.
 
 use http::Method;
 use sub60_endpoints_common::{
@@ -11,6 +11,8 @@ use sub60_endpoints_common::{
     WithMessage,
     error,
 };
+
+use crate::AccountSummary;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
@@ -32,7 +34,7 @@ pub struct Path {
 #[serde(tag = "status", rename_all = "snake_case")]
 pub enum NameAvailability {
     Available,
-    Taken,
+    Taken { account: AccountSummary },
     Invalid(AccountNameFromStrError),
 }
 

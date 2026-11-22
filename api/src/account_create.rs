@@ -5,14 +5,23 @@
 //! taken or reserved.
 
 use http::Method;
-use sub60_endpoints_common::{AccountName, Created, Json, WithMessage, error};
+use sub60_endpoints_common::{
+    AccountName,
+    Created,
+    Json,
+    PathParams,
+    WithMessage,
+    error,
+};
 
-use crate::{Account, AccountKind, account_list};
-
-pub type Path = account_list::Path;
+use crate::{Account, AccountKind};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
+#[route("/accounts")]
+pub struct Path;
 
 #[derive(
     Debug,

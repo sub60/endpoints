@@ -1,4 +1,4 @@
-//! The `GET /accounts` endpoint.
+//! The `GET /user/accounts` endpoint.
 //!
 //! Lists the accounts the request's principal has access to, sorted by name.
 
@@ -22,7 +22,7 @@ use crate::Account;
 pub struct Endpoint;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PathParams)]
-#[route("/accounts")]
+#[route("/user/accounts")]
 pub struct Path;
 
 #[derive(
