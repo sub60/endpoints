@@ -1,7 +1,6 @@
 //! The `PATCH /user/tokens/{token_id}` endpoint.
 //!
-//! Changes one of the caller's user tokens, and returns the updated
-//! [`UserToken`].
+//! Changes a user token's description or expiration.
 
 use http::Method;
 use sub60_endpoints_common::{Json, Ok, PathParams, WithMessage, error};
