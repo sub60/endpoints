@@ -3,7 +3,9 @@
 //! Gets the number of bytes stored across all caches.
 
 use http::Method;
-use sub60_endpoints_common::{Json, Ok, PathParams, WithMessage, error};
+use sub60_endpoints_common::body::{Json, WithMessage};
+use sub60_endpoints_common::response::Ok;
+use sub60_endpoints_common::{PathParams, error};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
@@ -26,7 +28,7 @@ pub struct Response {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::Response,
+    sub60_endpoints_common::response::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {

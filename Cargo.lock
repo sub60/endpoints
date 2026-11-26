@@ -10,7 +10,6 @@ checksum = "31b698c5f9a010f6573133b09e0de5408834d0c82f8d7475a89fc1867a71cd90"
 dependencies = [
  "axum-core",
  "bytes",
- "form_urlencoded",
  "futures-util",
  "http",
  "http-body",
@@ -22,9 +21,6 @@ dependencies = [
  "percent-encoding",
  "pin-project-lite",
  "serde_core",
- "serde_json",
- "serde_path_to_error",
- "serde_urlencoded",
  "sync_wrapper",
  "tower",
  "tower-layer",
@@ -669,17 +665,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_path_to_error"
-version = "0.1.20"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10a9ff822e371bb5403e391ecd83e182e0e77ba7f6fe0160b795797109d1b457"
-dependencies = [
- "itoa",
- "serde",
- "serde_core",
-]
-
-[[package]]
 name = "serde_urlencoded"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -766,7 +751,7 @@ dependencies = [
 name = "sub60-endpoints-cache"
 version = "0.1.0"
 dependencies = [
- "axum",
+ "bytes",
  "cauchy",
  "derive_more",
  "http",
@@ -784,6 +769,7 @@ name = "sub60-endpoints-common"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "bytes",
  "cauchy",
  "const_format",
  "derive_more",
@@ -792,6 +778,7 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
+ "serde_urlencoded",
  "smol_str",
  "sub60-endpoints-macros",
 ]

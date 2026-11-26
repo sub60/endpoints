@@ -3,14 +3,10 @@
 //! Previews switching an account to a paid plan.
 
 use http::Method;
-use sub60_endpoints_common::{
-    Json,
-    Ok,
-    PathParams,
-    WithMessage,
-    WithQuery,
-    error,
-};
+use sub60_endpoints_common::body::{Json, WithMessage};
+use sub60_endpoints_common::request::WithQuery;
+use sub60_endpoints_common::response::Ok;
+use sub60_endpoints_common::{PathParams, error};
 
 use crate::{AccountId, Money, PaidPlan};
 
@@ -61,7 +57,7 @@ pub struct Response {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::Response,
+    sub60_endpoints_common::response::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {

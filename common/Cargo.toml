@@ -7,7 +7,7 @@ edition.workspace = true
 axum = ["dep:axum", "sub60-endpoints-macros/axum"]
 
 [dependencies]
-axum = { workspace = true, optional = true, features = ["json", "query"] }
+bytes = { workspace = true }
 cauchy = { workspace = true }
 const_format = { workspace = true }
 derive_more = { workspace = true, features = ["display"] }
@@ -16,8 +16,11 @@ percent-encoding = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+serde_urlencoded = { workspace = true }
 smol_str = { workspace = true, features = ["serde"] }
 sub60-endpoints-macros = { workspace = true }
+
+axum = { workspace = true, optional = true }
 
 [lints]
 workspace = true

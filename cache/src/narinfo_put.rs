@@ -5,7 +5,7 @@
 //! Its NAR must already have been uploaded.
 
 use http::{Method, StatusCode};
-use sub60_endpoints_common::{Created, Ok};
+use sub60_endpoints_common::response::{Created, Ok};
 
 use crate::narinfo_get::{self, NarInfoBody};
 
@@ -15,7 +15,12 @@ pub type Path = narinfo_get::Path;
 pub struct Endpoint;
 
 #[derive(
-    Debug, Copy, Clone, PartialEq, Eq, sub60_endpoints_common::Response,
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    sub60_endpoints_common::response::Response,
 )]
 pub enum Response {
     /// The NARInfo was stored.

@@ -1,10 +1,9 @@
 use axum::response::IntoResponse;
 use http::{StatusCode, header};
 use schemars::{Schema, SchemaGenerator};
-use sub60_endpoints_common::{
-    Body,
+use sub60_endpoints_common::body::{Body, Json};
+use sub60_endpoints_common::response::{
     Created,
-    Json,
     NotFound,
     Ok,
     Response,

@@ -2,9 +2,14 @@
 //!
 //! Gets a NARInfo.
 
+use std::io::Write as _;
+
+use bytes::BufMut;
 use http::{Method, StatusCode};
 use nix_types::{NarInfo, NarInfoFileName};
-use sub60_endpoints_common::{Body, NotFound, Ok, PathParams};
+use sub60_endpoints_common::PathParams;
+use sub60_endpoints_common::body::{Body, Encode};
+use sub60_endpoints_common::response::{NotFound, Ok};
 
 use crate::CachePath;
 
@@ -23,7 +28,7 @@ pub struct Path {
     pub narinfo_file_name: NarInfoFileName,
 }
 
-#[derive(Debug, PartialEq, Eq, sub60_endpoints_common::Response)]
+#[derive(Debug, PartialEq, Eq, sub60_endpoints_common::response::Response)]
 #[expect(clippy::large_enum_variant)]
 pub enum Response {
     /// The NARInfo, signed with the cache's key.
@@ -55,15 +60,10 @@ impl Body for NarInfoBody {
     }
 }
 
-#[cfg(feature = "axum")]
-impl axum::response::IntoResponse for NarInfoBody {
-    fn into_response(self) -> axum::response::Response {
-        use axum::http::{HeaderValue, header};
-
-        const CONTENT_TYPE: HeaderValue =
-            HeaderValue::from_static("text/x-nix-narinfo");
-
-        ([(header::CONTENT_TYPE, CONTENT_TYPE)], self.0.to_string())
-            .into_response()
+impl Encode for NarInfoBody {
+    #[inline]
+    fn encode(&self, buf: &mut impl BufMut) {
+        write!(buf.writer(), "{}", self.0)
+            .expect("the buffer has room for the body");
     }
 }

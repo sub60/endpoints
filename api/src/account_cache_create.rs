@@ -3,14 +3,9 @@
 //! Creates a cache.
 
 use http::Method;
-use sub60_endpoints_common::{
-    CacheName,
-    Created,
-    Json,
-    Permission,
-    WithMessage,
-    error,
-};
+use sub60_endpoints_common::body::{Json, WithMessage};
+use sub60_endpoints_common::response::Created;
+use sub60_endpoints_common::{CacheName, Permission, error};
 
 use crate::{Cache, InvalidPublicPermissions, account_cache_list};
 
@@ -42,7 +37,7 @@ pub struct Request {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::Response,
+    sub60_endpoints_common::response::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {

@@ -2,7 +2,8 @@
 
 use http::StatusCode;
 
-use crate::{Permission, Response, ResponseVisitor};
+use crate::Permission;
+use crate::response::{Response, ResponseVisitor, VariantVisitor};
 
 /// An error an endpoint responds with.
 pub trait Error {
@@ -141,6 +142,29 @@ pub struct MethodNotAllowed;
 #[display("the server failed to handle the request")]
 pub struct Internal;
 
+/// The ways a request can fail before it reaches an endpoint, e.g. when its
+/// path matches no endpoint.
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    derive_more::Display,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+#[serde(tag = "code", rename_all = "snake_case")]
+pub enum RequestError {
+    InvalidRequest(InvalidRequest),
+    PayloadTooLarge(PayloadTooLarge),
+    NotFound(NotFound),
+    MethodNotAllowed(MethodNotAllowed),
+    Internal(Internal),
+}
+
 /// A response with the error's status code and no body.
 impl<E: Error> Response for E {
     #[inline]
@@ -184,4 +208,51 @@ impl Error for MethodNotAllowed {
 
 impl Error for Internal {
     const STATUS: StatusCode = StatusCode::INTERNAL_SERVER_ERROR;
+}
+
+impl From<StatusCode> for RequestError {
+    fn from(status: StatusCode) -> Self {
+        match status {
+            StatusCode::PAYLOAD_TOO_LARGE => {
+                Self::PayloadTooLarge(PayloadTooLarge)
+            },
+            StatusCode::NOT_FOUND => Self::NotFound(NotFound),
+            StatusCode::METHOD_NOT_ALLOWED => {
+                Self::MethodNotAllowed(MethodNotAllowed)
+            },
+            status if status.is_server_error() => Self::Internal(Internal),
+            _ => Self::InvalidRequest(InvalidRequest),
+        }
+    }
+}
+
+impl Response for RequestError {
+    #[inline]
+    fn status(&self) -> StatusCode {
+        match self {
+            Self::InvalidRequest(error) => error.status(),
+            Self::PayloadTooLarge(error) => error.status(),
+            Self::NotFound(error) => error.status(),
+            Self::MethodNotAllowed(error) => error.status(),
+            Self::Internal(error) => error.status(),
+        }
+    }
+
+    #[inline]
+    fn visit<V: ResponseVisitor>(visitor: &mut V) {
+        InvalidRequest::visit(visitor);
+        PayloadTooLarge::visit(visitor);
+        NotFound::visit(visitor);
+        MethodNotAllowed::visit(visitor);
+        Internal::visit(visitor);
+    }
+
+    #[inline]
+    fn visit_variants<V: VariantVisitor>(visitor: &mut V) {
+        visitor.visit::<InvalidRequest, 0>();
+        visitor.visit::<PayloadTooLarge, 1>();
+        visitor.visit::<NotFound, 2>();
+        visitor.visit::<MethodNotAllowed, 3>();
+        visitor.visit::<Internal, 4>();
+    }
 }

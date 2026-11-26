@@ -3,14 +3,9 @@
 //! Creates an org or the caller's personal account.
 
 use http::Method;
-use sub60_endpoints_common::{
-    AccountName,
-    Created,
-    Json,
-    PathParams,
-    WithMessage,
-    error,
-};
+use sub60_endpoints_common::body::{Json, WithMessage};
+use sub60_endpoints_common::response::Created;
+use sub60_endpoints_common::{AccountName, PathParams, error};
 
 use crate::{Account, AccountKind};
 
@@ -42,7 +37,7 @@ pub struct Request {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::Response,
+    sub60_endpoints_common::response::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {

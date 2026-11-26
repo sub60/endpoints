@@ -1,13 +1,15 @@
+//! The bodies of requests and responses.
+
 use alloc::borrow::Cow;
 use core::marker::PhantomData;
 use core::{any, fmt};
 
+use bytes::BufMut;
 use http::StatusCode;
 use schemars::{JsonSchema, Schema, SchemaGenerator};
 use serde_json::{Map, Value};
 
-use crate::response::VariantVisitor;
-use crate::{Response, ResponseVisitor};
+use crate::response::{Response, ResponseVisitor, VariantVisitor};
 
 /// The body of a request or response.
 pub trait Body {
@@ -18,6 +20,18 @@ pub trait Body {
     ///
     /// This is `false` for an empty body since no content matches it.
     fn schema(generator: &mut SchemaGenerator) -> Schema;
+}
+
+pub trait Encode: Body {
+    /// Appends the body's bytes to `buf`.
+    fn encode(&self, buf: &mut impl BufMut);
+}
+
+pub trait Decode: Body + Sized {
+    type Error: fmt::Display;
+
+    /// Decodes the body from `bytes`.
+    fn decode(bytes: &[u8]) -> Result<Self, Self::Error>;
 }
 
 /// A body holding a `T` serialized as JSON.
@@ -38,6 +52,13 @@ pub struct Json<T>(pub T);
 /// A `T` serialized with a `message` from `T`'s `Display` impl.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct WithMessage<T>(pub T);
+
+/// The error returned when decoding a non-empty body into `()`.
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, derive_more::Display, cauchy::Error,
+)]
+#[display("expected an empty body")]
+pub struct NonEmptyBodyError;
 
 struct Variant<Enum, const I: usize>(PhantomData<Enum>);
 
@@ -229,22 +250,37 @@ impl<T: JsonSchema> Body for Json<T> {
     }
 }
 
-#[cfg(feature = "axum")]
-impl<S, T> axum::extract::FromRequest<S> for Json<T>
-where
-    S: Send + Sync,
-    T: serde::de::DeserializeOwned,
-{
-    type Rejection = axum::extract::rejection::JsonRejection;
+impl Decode for () {
+    type Error = NonEmptyBodyError;
 
     #[inline]
-    async fn from_request(
-        request: axum::extract::Request,
-        state: &S,
-    ) -> Result<Self, Self::Rejection> {
-        axum::Json::from_request(request, state)
-            .await
-            .map(|axum::Json(value)| Self(value))
+    fn decode(bytes: &[u8]) -> Result<Self, Self::Error> {
+        if bytes.is_empty() { Ok(()) } else { Err(NonEmptyBodyError) }
+    }
+}
+
+impl<T> Decode for Json<T>
+where
+    T: JsonSchema + serde::de::DeserializeOwned,
+{
+    type Error = serde_json::Error;
+
+    #[inline]
+    fn decode(bytes: &[u8]) -> Result<Self, Self::Error> {
+        serde_json::from_slice(bytes).map(Self)
+    }
+}
+
+impl Encode for () {
+    #[inline]
+    fn encode(&self, _: &mut impl BufMut) {}
+}
+
+impl<T: JsonSchema + serde::Serialize> Encode for Json<T> {
+    #[inline]
+    fn encode(&self, buf: &mut impl BufMut) {
+        serde_json::to_writer(buf.writer(), &self.0)
+            .expect("the body serializes to JSON");
     }
 }
 
@@ -288,6 +324,21 @@ mod tests {
     #[display("the token is invalid")]
     struct InvalidToken {
         reason: String,
+    }
+
+    fn assert_round_trips<B>(body: B)
+    where
+        B: Encode + Decode<Error: fmt::Debug> + fmt::Debug + PartialEq,
+    {
+        let mut buf = Vec::new();
+        body.encode(&mut buf);
+        assert_eq!(B::decode(&buf).unwrap(), body);
+    }
+
+    #[test]
+    fn bodies_round_trip() {
+        assert_round_trips(());
+        assert_round_trips(Json(vec![1_u32, 2, 3]));
     }
 
     #[test]

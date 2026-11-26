@@ -16,9 +16,9 @@ pub mod narinfo_put;
 pub mod nix_cache_info;
 
 pub use etag::{Etag, EtagFromStrError};
+use sub60_endpoints_common::body::Body;
 use sub60_endpoints_common::{
     AccountName,
-    Body,
     CacheName,
     EndpointVisitor,
     PathParams,

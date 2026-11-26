@@ -6,7 +6,7 @@
 //! with a `400 Bad Request`.
 
 use http::{Method, StatusCode};
-use sub60_endpoints_common::{Created, NoContent};
+use sub60_endpoints_common::response::{Created, NoContent};
 
 use crate::{NarBody, nar_head};
 
@@ -16,7 +16,12 @@ pub type Path = nar_head::Path;
 pub struct Endpoint;
 
 #[derive(
-    Debug, Copy, Clone, PartialEq, Eq, sub60_endpoints_common::Response,
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    sub60_endpoints_common::response::Response,
 )]
 pub enum Response {
     /// The NAR was stored.

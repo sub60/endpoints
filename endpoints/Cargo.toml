@@ -5,7 +5,7 @@ edition.workspace = true
 
 [features]
 api = ["dep:sub60-endpoints-api"]
-axum = ["sub60-endpoints-cache?/axum", "sub60-endpoints-common/axum"]
+axum = ["sub60-endpoints-common/axum"]
 cache = ["dep:sub60-endpoints-cache"]
 
 [dependencies]

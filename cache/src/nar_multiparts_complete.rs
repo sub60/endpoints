@@ -5,7 +5,9 @@
 use http::{Method, StatusCode};
 use nix_types::Nix32Digest;
 use smallvec::SmallVec;
-use sub60_endpoints_common::{Created, Json, Ok, PathParams, WithStatus};
+use sub60_endpoints_common::PathParams;
+use sub60_endpoints_common::body::Json;
+use sub60_endpoints_common::response::{Created, Ok, WithStatus};
 
 use crate::nar_multiparts::UploadId;
 use crate::{CachePath, Etag};
@@ -25,7 +27,9 @@ pub struct Path<Id = UploadId> {
     pub upload_id: Id,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, sub60_endpoints_common::Response)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, sub60_endpoints_common::response::Response,
+)]
 pub enum Response {
     /// The NAR was stored.
     Created(Created<Json<ResponseBody>>),

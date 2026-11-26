@@ -3,14 +3,9 @@
 //! Changes a grant's permissions, or the repos and refs a CI job grant matches.
 
 use http::Method;
-use sub60_endpoints_common::{
-    Json,
-    Ok,
-    PathParams,
-    Permission,
-    WithMessage,
-    error,
-};
+use sub60_endpoints_common::body::{Json, WithMessage};
+use sub60_endpoints_common::response::Ok;
+use sub60_endpoints_common::{PathParams, Permission, error};
 
 use crate::{CiJobs, Grant, GrantId, InvalidGrantPermissions};
 
@@ -47,7 +42,7 @@ pub struct Request {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::Response,
+    sub60_endpoints_common::response::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {

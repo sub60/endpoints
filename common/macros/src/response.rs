@@ -48,7 +48,7 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
                 held_types.push(fields.unnamed[0].ty.clone());
                 arms.push(quote! {
                     Self::#ident(response) => {
-                        #krate::Response::status(response)
+                        #krate::response::Response::status(response)
                     }
                 });
                 into_response_arms.push(quote! {
@@ -70,16 +70,17 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
             (_, Some(attr)) => {
                 let status = attr.parse_args::<syn::Ident>()?;
                 let status = quote!(#krate::__private::StatusCode::#status);
-                types.push(parse_quote! {
-                    #krate::WithStatus<{ #status.as_u16() }>
-                });
+                let ty: syn::Type = parse_quote! {
+                    #krate::response::WithStatus<{ #status.as_u16() }>
+                };
                 arms.push(quote!(Self::#ident { .. } => #status));
                 into_response_arms.push(quote! {
                     Self::#ident { .. } => {
-                        #krate::__private::axum::response::IntoResponse
-                            ::into_response(#status)
+                        <#ty as #krate::__private::axum::response::IntoResponse>
+                            ::into_response(#krate::response::WithStatus(()))
                     }
                 });
+                types.push(ty);
             },
             (_, None) => {
                 return Err(syn::Error::new_spanned(
@@ -95,14 +96,16 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
 
         visits.push(match doc(&variant.attrs) {
             Some(description) => quote! {
-                <#ty as #krate::Response>::visit(
+                <#ty as #krate::response::Response>::visit(
                     &mut #krate::__private::WithDescription {
                         visitor: &mut *visitor,
                         description: #description,
                     },
                 );
             },
-            None => quote!(<#ty as #krate::Response>::visit(visitor);),
+            None => {
+                quote!(<#ty as #krate::response::Response>::visit(visitor);)
+            },
         });
     }
 
@@ -112,7 +115,9 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
     if !generics.params.is_empty() {
         let where_clause = generics.make_where_clause();
         for ty in &types {
-            where_clause.predicates.push(parse_quote!(#ty: #krate::Response));
+            where_clause
+                .predicates
+                .push(parse_quote!(#ty: #krate::response::Response));
         }
     }
 
@@ -158,7 +163,7 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
     Ok(quote! {
         #into_response_impl
 
-        impl #impl_generics #krate::Response for #name #ty_generics
+        impl #impl_generics #krate::response::Response for #name #ty_generics
             #where_clause
         {
             #[inline]
@@ -169,7 +174,7 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
             }
 
             #[inline]
-            fn visit<V: #krate::ResponseVisitor>(visitor: &mut V) {
+            fn visit<V: #krate::response::ResponseVisitor>(visitor: &mut V) {
                 #(#visits)*
             }
 

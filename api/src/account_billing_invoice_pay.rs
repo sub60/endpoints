@@ -4,14 +4,9 @@
 //! Pays an open invoice.
 
 use http::Method;
-use sub60_endpoints_common::{
-    Accepted,
-    Json,
-    Ok,
-    PathParams,
-    WithMessage,
-    error,
-};
+use sub60_endpoints_common::body::{Json, WithMessage};
+use sub60_endpoints_common::response::{Accepted, Ok};
+use sub60_endpoints_common::{PathParams, error};
 
 use crate::{AccountId, ChargeConfirmation, Invoice, InvoiceId};
 
@@ -25,7 +20,9 @@ pub struct Path {
     pub invoice_id: InvoiceId,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, sub60_endpoints_common::Response)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, sub60_endpoints_common::response::Response,
+)]
 pub enum Response {
     Paid(Ok<Json<Invoice>>),
     ConfirmationRequired(Accepted<Json<ChargeConfirmation>>),
@@ -37,7 +34,7 @@ pub enum Response {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::Response,
+    sub60_endpoints_common::response::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {

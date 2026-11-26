@@ -6,7 +6,9 @@ use core::num::{NonZeroU32, NonZeroU64};
 
 use http::{Method, StatusCode};
 use smallvec::SmallVec;
-use sub60_endpoints_common::{Json, Ok, PathParams, Timestamp};
+use sub60_endpoints_common::body::Json;
+use sub60_endpoints_common::response::Ok;
+use sub60_endpoints_common::{PathParams, Timestamp};
 
 use crate::CachePath;
 

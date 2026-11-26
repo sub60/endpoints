@@ -3,14 +3,9 @@
 //! Gets an account name's availability.
 
 use http::Method;
-use sub60_endpoints_common::{
-    AccountNameFromStrError,
-    Json,
-    Ok,
-    PathParams,
-    WithMessage,
-    error,
-};
+use sub60_endpoints_common::body::{Json, WithMessage};
+use sub60_endpoints_common::response::Ok;
+use sub60_endpoints_common::{AccountNameFromStrError, PathParams, error};
 
 use crate::AccountSummary;
 
@@ -44,7 +39,7 @@ pub enum NameAvailability {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::Response,
+    sub60_endpoints_common::response::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {

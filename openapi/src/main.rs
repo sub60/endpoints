@@ -8,18 +8,11 @@ use schemars::JsonSchema;
 use schemars::generate::{Contract, SchemaGenerator, SchemaSettings};
 use serde_json::map::Entry;
 use serde_json::{Map, Value, json};
-use sub60_endpoints_common::{
-    Body,
-    Endpoint,
-    EndpointVisitor,
-    Json,
-    PathParams,
-    Request,
-    RequestError,
-    Response,
-    ResponseVisitor,
-    WithMessage,
-};
+use sub60_endpoints_common::body::{Body, Json, WithMessage};
+use sub60_endpoints_common::error::RequestError;
+use sub60_endpoints_common::request::Request;
+use sub60_endpoints_common::response::{Response, ResponseVisitor};
+use sub60_endpoints_common::{Endpoint, EndpointVisitor, PathParams};
 
 const DOMAINS: &[Domain] = &[Domain {
     name: "api",

@@ -3,11 +3,8 @@ name = "sub60-endpoints-cache"
 version.workspace = true
 edition.workspace = true
 
-[features]
-axum = ["dep:axum", "sub60-endpoints-common/axum"]
-
 [dependencies]
-axum = { workspace = true, optional = true }
+bytes = { workspace = true }
 cauchy = { workspace = true }
 derive_more = { workspace = true, features = ["as_ref", "display"] }
 http = { workspace = true }

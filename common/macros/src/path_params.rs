@@ -199,7 +199,7 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
                 for #name #ty_generics
                 #where_clause
             {
-                type Rejection = #krate::PathParamsRejection;
+                type Rejection = #krate::axum::PathParamsRejection;
 
                 async fn from_request_parts(
                     parts: &mut #krate::__private::axum::http::request::Parts,

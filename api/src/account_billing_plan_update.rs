@@ -3,14 +3,9 @@
 //! Switches an account's plan.
 
 use http::Method;
-use sub60_endpoints_common::{
-    Accepted,
-    Json,
-    Ok,
-    PathParams,
-    WithMessage,
-    error,
-};
+use sub60_endpoints_common::body::{Json, WithMessage};
+use sub60_endpoints_common::response::{Accepted, Ok};
+use sub60_endpoints_common::{PathParams, error};
 
 use crate::{AccountId, Billing, ChargeConfirmation, PaidPlan};
 
@@ -41,7 +36,9 @@ pub struct Request {
     pub plan: Option<PaidPlan>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, sub60_endpoints_common::Response)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, sub60_endpoints_common::response::Response,
+)]
 #[expect(clippy::large_enum_variant)]
 pub enum Response {
     /// The plan was changed, or its change was scheduled for the next period,
@@ -58,7 +55,7 @@ pub enum Response {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::Response,
+    sub60_endpoints_common::response::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {

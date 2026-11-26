@@ -3,7 +3,9 @@
 //! Changes an account's billing details, and returns the updated [`Billing`].
 
 use http::Method;
-use sub60_endpoints_common::{Json, Ok, WithMessage, error};
+use sub60_endpoints_common::body::{Json, WithMessage};
+use sub60_endpoints_common::error;
+use sub60_endpoints_common::response::Ok;
 
 use crate::{Billing, account_billing_get};
 
@@ -35,7 +37,7 @@ pub struct Request {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::Response,
+    sub60_endpoints_common::response::Response,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {

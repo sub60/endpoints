@@ -7,7 +7,8 @@
 
 use http::{Method, StatusCode};
 use nix_types::NarFileName;
-use sub60_endpoints_common::{NotFound, Ok, PathParams};
+use sub60_endpoints_common::PathParams;
+use sub60_endpoints_common::response::{NotFound, Ok};
 
 use crate::{CachePath, NarBody};
 
@@ -27,7 +28,12 @@ pub struct Path {
 }
 
 #[derive(
-    Debug, Copy, Clone, PartialEq, Eq, sub60_endpoints_common::Response,
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    sub60_endpoints_common::response::Response,
 )]
 pub enum Response {
     /// The NAR exists, and it's in the response's body.

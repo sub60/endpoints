@@ -6,11 +6,15 @@
 //! request.
 
 use core::str::FromStr;
-use core::{fmt, ops};
+use core::{fmt, ops, str};
+use std::io::Write as _;
 
+use bytes::BufMut;
 use http::{Method, StatusCode};
 use nix_types::{StoreHash, StoreHashFromStrError};
-use sub60_endpoints_common::{Body, Ok, PathParams};
+use sub60_endpoints_common::PathParams;
+use sub60_endpoints_common::body::{Body, Decode, Encode};
+use sub60_endpoints_common::response::Ok;
 
 use crate::CachePath;
 
@@ -41,8 +45,7 @@ pub struct Path {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct StoreHashes(pub Vec<StoreHash>);
 
-/// The type of error that can occur when parsing a string into
-/// [`StoreHashes`].
+/// The type of error that can occur when parsing a string into [`StoreHashes`].
 #[derive(Debug, PartialEq, Eq, derive_more::Display, cauchy::Error)]
 #[display("line {line}: {error}")]
 pub struct StoreHashesFromStrError {
@@ -51,6 +54,18 @@ pub struct StoreHashesFromStrError {
 
     /// Why the line isn't a valid store hash.
     pub error: StoreHashFromStrError,
+}
+
+/// The type of error that can occur when decoding bytes into [`StoreHashes`].
+#[derive(Debug, PartialEq, Eq, derive_more::Display, cauchy::Error)]
+pub enum StoreHashesDecodeError {
+    /// The bytes aren't UTF-8.
+    #[display("the store hashes aren't UTF-8")]
+    Utf8(core::str::Utf8Error),
+
+    /// The bytes aren't store hashes written one per line.
+    #[display("{_0}")]
+    FromStr(StoreHashesFromStrError),
 }
 
 impl sub60_endpoints_common::Endpoint for Endpoint {
@@ -105,15 +120,39 @@ impl Body for StoreHashes {
     }
 }
 
-#[cfg(feature = "axum")]
-impl axum::response::IntoResponse for StoreHashes {
-    fn into_response(self) -> axum::response::Response {
-        use axum::http::{HeaderValue, header};
+impl Encode for StoreHashes {
+    #[inline]
+    fn encode(&self, buf: &mut impl BufMut) {
+        write!(buf.writer(), "{self}")
+            .expect("the buffer has room for the body");
+    }
+}
 
-        const CONTENT_TYPE: HeaderValue =
-            HeaderValue::from_static("text/plain; charset=utf-8");
+impl Decode for StoreHashes {
+    type Error = StoreHashesDecodeError;
 
-        ([(header::CONTENT_TYPE, CONTENT_TYPE)], self.to_string())
-            .into_response()
+    #[inline]
+    fn decode(bytes: &[u8]) -> Result<Self, Self::Error> {
+        str::from_utf8(bytes)
+            .map_err(StoreHashesDecodeError::Utf8)?
+            .parse()
+            .map_err(StoreHashesDecodeError::FromStr)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn store_hashes_round_trip() {
+        let store_hashes = StoreHashes(vec![
+            "0123456789abcdfghijklmnpqrsvwxyz".parse().unwrap(),
+            "zyxwvsrqpnmlkjihgfdcba9876543210".parse().unwrap(),
+        ]);
+
+        let mut buf = Vec::new();
+        store_hashes.encode(&mut buf);
+        assert_eq!(StoreHashes::decode(&buf).unwrap(), store_hashes);
     }
 }

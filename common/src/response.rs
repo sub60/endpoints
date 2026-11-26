@@ -1,9 +1,9 @@
+//! TODO: docs.
+
 use http::StatusCode;
 pub use sub60_endpoints_macros::Response;
 
-use crate::Body;
-#[cfg(feature = "axum")]
-use crate::Json;
+use crate::body::Body;
 
 /// A `200 OK` response.
 pub type Ok<B = ()> = WithStatus<200, B>;
@@ -103,27 +103,5 @@ impl<V: ResponseVisitor> ResponseVisitor for WithDescription<'_, V> {
         description: Option<&'static str>,
     ) {
         self.visitor.visit::<B>(status, description.or(Some(self.description)));
-    }
-}
-
-#[cfg(feature = "axum")]
-impl<const S: u16, B> axum::response::IntoResponse for WithStatus<S, B>
-where
-    B: axum::response::IntoResponse,
-{
-    #[inline]
-    fn into_response(self) -> axum::response::Response {
-        (Self::STATUS, self.0).into_response()
-    }
-}
-
-#[cfg(feature = "axum")]
-impl<const S: u16, T> axum::response::IntoResponse for WithStatus<S, Json<T>>
-where
-    T: serde::Serialize,
-{
-    #[inline]
-    fn into_response(self) -> axum::response::Response {
-        (Self::STATUS, axum::Json(self.0.0)).into_response()
     }
 }

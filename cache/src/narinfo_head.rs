@@ -3,7 +3,7 @@
 //! Checks whether a NARInfo exists.
 
 use http::{Method, StatusCode};
-use sub60_endpoints_common::{NotFound, Ok};
+use sub60_endpoints_common::response::{NotFound, Ok};
 
 use crate::narinfo_get;
 
@@ -13,7 +13,12 @@ pub type Path = narinfo_get::Path;
 pub struct Endpoint;
 
 #[derive(
-    Debug, Copy, Clone, PartialEq, Eq, sub60_endpoints_common::Response,
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    sub60_endpoints_common::response::Response,
 )]
 pub enum Response {
     /// The NARInfo exists.

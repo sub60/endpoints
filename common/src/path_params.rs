@@ -1,8 +1,6 @@
 use core::fmt;
 use core::str::FromStr;
 
-#[cfg(feature = "axum")]
-pub use extract::PathParamsRejection;
 use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, utf8_percent_encode};
 pub use sub60_endpoints_macros::PathParams;
 
@@ -83,9 +81,9 @@ pub mod __private {
     pub use http::StatusCode;
     pub use schemars;
 
-    #[cfg(feature = "axum")]
-    pub use super::extract::from_request_parts;
     use super::*;
+    #[cfg(feature = "axum")]
+    pub use crate::axum::from_request_parts;
     pub use crate::response::{VariantVisitor, WithDescription};
 
     /// The characters that get percent-encoded in a path parameter, i.e. all
@@ -120,62 +118,5 @@ pub mod __private {
             name,
             message: err.to_string(),
         })
-    }
-}
-
-/// Extracting [`PathParams`] from axum requests.
-#[cfg(feature = "axum")]
-mod extract {
-    use axum::extract::rejection::RawPathParamsRejection;
-    use axum::extract::{FromRequestParts, RawPathParams};
-    use axum::http::StatusCode;
-    use axum::http::request::Parts;
-    use axum::response::{IntoResponse, Response};
-
-    use crate::{PathParams, PathParamsError};
-
-    /// The rejection returned when [`PathParams`] can't be extracted from a
-    /// request.
-    #[derive(Debug, derive_more::Display, cauchy::Error)]
-    pub enum PathParamsRejection {
-        /// The path's parameters couldn't be read.
-        #[display("{_0}")]
-        Raw(RawPathParamsRejection),
-
-        /// The path's parameters didn't parse.
-        #[display("{_0}")]
-        Parse(PathParamsError),
-    }
-
-    /// Extracts the path parameters of a request, for the `FromRequestParts` impls
-    /// the derive macro expands to.
-    #[doc(hidden)]
-    pub async fn from_request_parts<T: PathParams, S: Send + Sync>(
-        parts: &mut Parts,
-        state: &S,
-    ) -> Result<T, PathParamsRejection> {
-        let params = RawPathParams::from_request_parts(parts, state)
-            .await
-            .map_err(PathParamsRejection::Raw)?;
-
-        T::parse(&mut params.iter()).map_err(PathParamsRejection::Parse)
-    }
-
-    impl IntoResponse for PathParamsRejection {
-        fn into_response(self) -> Response {
-            match self {
-                Self::Raw(rejection) => rejection.into_response(),
-                Self::Parse(err @ PathParamsError::Invalid { .. }) => {
-                    (StatusCode::BAD_REQUEST, err.to_string()).into_response()
-                },
-                // The route's template and the parameters disagree, which is a
-                // bug on the server.
-                Self::Parse(
-                    err @ (PathParamsError::Missing(_)
-                    | PathParamsError::UnexpectedName { .. }),
-                ) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
-                    .into_response(),
-            }
-        }
     }
 }
