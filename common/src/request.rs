@@ -1,6 +1,6 @@
 //! TODO: docs.
 
-use crate::body::{Body, Decode};
+use crate::body::{self, Body, Decode};
 
 /// TODO: docs.
 pub trait Request {
@@ -49,18 +49,8 @@ pub fn decode<R>(
 where
     R: Request<Query: serde::de::DeserializeOwned, Body: Decode>,
 {
-    fn essence(media_type: &str) -> &str {
-        media_type.split(';').next().unwrap_or_default().trim()
-    }
-
     if let Some(expected) = R::Body::MEDIA_TYPE
-        && !parts
-            .headers
-            .get(http::header::CONTENT_TYPE)
-            .and_then(|value| value.to_str().ok())
-            .is_some_and(|value| {
-                essence(value).eq_ignore_ascii_case(essence(expected))
-            })
+        && !body::has_media_type(&parts.headers, expected)
     {
         return Err(DecodeError::MediaType { expected });
     }

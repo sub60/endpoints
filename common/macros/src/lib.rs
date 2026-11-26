@@ -2,6 +2,7 @@
 
 mod path_params;
 mod response;
+mod statuses;
 
 use proc_macro::TokenStream;
 use syn::parse_macro_input;
@@ -32,15 +33,28 @@ pub fn path_params(input: TokenStream) -> TokenStream {
         .into()
 }
 
-/// Derives `Response` for an enum.
+/// Derives `response::Alternatives` for an enum, with one alternative per
+/// variant.
 ///
-/// With the `axum` feature, it also implements axum's `IntoResponse` for the
-/// enums whose variants all hold types implementing it, or have a
-/// `#[status(..)]`.
-#[proc_macro_derive(Response, attributes(status))]
-pub fn response(input: TokenStream) -> TokenStream {
+/// Each variant holds a single response, e.g. `Found(Ok<Json<Cache>>)`, and its
+/// doc comment describes that response.
+#[proc_macro_derive(Alternatives)]
+pub fn alternatives(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
     response::expand(input)
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
+}
+
+/// Derives `response::Statuses` for an enum.
+///
+/// Each variant holds a single type implementing `Status`, e.g.
+/// `Internal(error::Internal)` or `NameTaken(status::Conflict)`, and its doc
+/// comment describes its response.
+#[proc_macro_derive(Statuses)]
+pub fn statuses(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as syn::DeriveInput);
+    statuses::expand(input)
         .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }

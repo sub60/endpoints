@@ -81,6 +81,6 @@ pub struct InvalidPublicPermissions {
     pub invalid: Vec<Permission>,
 }
 
-impl sub60_endpoints_common::Error for InvalidPublicPermissions {
+impl sub60_endpoints_common::response::Status for InvalidPublicPermissions {
     const STATUS: StatusCode = StatusCode::BAD_REQUEST;
 }

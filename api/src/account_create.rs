@@ -4,8 +4,8 @@
 
 use http::Method;
 use sub60_endpoints_common::body::{Json, WithMessage};
-use sub60_endpoints_common::response::Created;
-use sub60_endpoints_common::{AccountName, PathParams, error};
+use sub60_endpoints_common::response::{Created, WithStatusOf};
+use sub60_endpoints_common::{AccountName, PathParams, error, status};
 
 use crate::{Account, AccountKind};
 
@@ -37,25 +37,22 @@ pub struct Request {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
     Unauthorized(error::Unauthorized),
     /// Another account has the name, ignoring case.
     #[display("the name is already taken by another account")]
-    #[status(CONFLICT)]
-    NameTaken,
+    NameTaken(status::Conflict),
     /// The request asks for a personal account, but the user already has one.
     #[display("the user already has a personal account")]
-    #[status(CONFLICT)]
-    PersonalAccountExists,
+    PersonalAccountExists(status::Conflict),
     /// The request asks for an org, but the user has no personal account yet.
     #[display(
         "the request creates an org, but the user has no personal account yet"
     )]
-    #[status(CONFLICT)]
-    PersonalAccountRequired,
+    PersonalAccountRequired(status::Conflict),
     Internal(error::Internal),
 }
 
@@ -65,5 +62,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = Json<Request>;
     type Response = Created<Json<Account>>;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }

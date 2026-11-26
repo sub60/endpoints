@@ -4,8 +4,8 @@
 
 use http::Method;
 use sub60_endpoints_common::body::{Json, WithMessage};
-use sub60_endpoints_common::response::Created;
-use sub60_endpoints_common::{CacheName, Permission, error};
+use sub60_endpoints_common::response::{Created, WithStatusOf};
+use sub60_endpoints_common::{CacheName, Permission, error, status};
 
 use crate::{Cache, InvalidPublicPermissions, account_cache_list};
 
@@ -37,7 +37,7 @@ pub struct Request {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
@@ -48,8 +48,7 @@ pub enum Error {
     InvalidPublicPermissions(InvalidPublicPermissions),
     /// The account already has a cache with the name, ignoring case.
     #[display("the account already has a cache with that name")]
-    #[status(CONFLICT)]
-    NameTaken,
+    NameTaken(status::Conflict),
     Internal(error::Internal),
 }
 
@@ -59,5 +58,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = Json<Request>;
     type Response = Created<Json<Cache>>;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }

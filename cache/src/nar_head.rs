@@ -25,12 +25,7 @@ pub struct Path {
 }
 
 #[derive(
-    Debug,
-    Copy,
-    Clone,
-    PartialEq,
-    Eq,
-    sub60_endpoints_common::response::Response,
+    Debug, Copy, Clone, PartialEq, Eq, sub60_endpoints_common::Alternatives,
 )]
 pub enum Response {
     /// The NAR exists.

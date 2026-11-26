@@ -4,8 +4,8 @@
 
 use http::Method;
 use sub60_endpoints_common::body::{Json, WithMessage};
-use sub60_endpoints_common::error;
-use sub60_endpoints_common::response::Ok;
+use sub60_endpoints_common::response::{Ok, WithStatusOf};
+use sub60_endpoints_common::{error, status};
 
 use crate::{Billing, account_billing_get};
 
@@ -37,7 +37,7 @@ pub struct Request {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
@@ -46,8 +46,7 @@ pub enum Error {
     NotFound(error::NotFound),
     /// The new billing email isn't a valid email address.
     #[display("the billing email isn't a valid email address")]
-    #[status(BAD_REQUEST)]
-    InvalidEmail,
+    InvalidEmail(status::BadRequest),
     Internal(error::Internal),
 }
 
@@ -57,5 +56,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = Json<Request>;
     type Response = Ok<Json<Billing>>;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }

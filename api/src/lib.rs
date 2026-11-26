@@ -67,6 +67,7 @@ pub use billing::{
     BasePlan,
     Billing,
     ChargeConfirmation,
+    DeclinedCharge,
     Invoice,
     InvoiceReason,
     InvoiceStatus,
@@ -78,7 +79,14 @@ pub use billing::{
 };
 pub use cache::{Cache, CacheUsage, InvalidPublicPermissions, PublicKey};
 pub use expiration::Expiration;
-pub use grant::{CiJobs, Grant, InvalidGrantPermissions, Principal, Target};
+pub use grant::{
+    CiJobs,
+    ExistingGrant,
+    Grant,
+    InvalidGrantPermissions,
+    Principal,
+    Target,
+};
 pub use id::{
     AccountId,
     CacheId,

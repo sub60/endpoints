@@ -5,8 +5,8 @@
 
 use http::Method;
 use sub60_endpoints_common::body::{Json, WithMessage};
-use sub60_endpoints_common::response::Ok;
-use sub60_endpoints_common::{PathParams, Timestamp, error};
+use sub60_endpoints_common::response::{Ok, WithStatusOf};
+use sub60_endpoints_common::{PathParams, Timestamp, error, status};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
@@ -86,24 +86,21 @@ pub enum LoginOutcome {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
     /// GitHub refused to exchange the code, e.g. because it expired, was
     /// already used, or doesn't match the code verifier.
     #[display("GitHub refused to exchange the code")]
-    #[status(BAD_REQUEST)]
-    InvalidCode,
+    InvalidCode(status::BadRequest),
     /// The GitHub user's primary email address isn't verified.
     #[display("the GitHub user's primary email address isn't verified")]
-    #[status(FORBIDDEN)]
-    NoVerifiedEmail,
+    NoVerifiedEmail(status::Forbidden),
     /// GitHub couldn't be reached, or answered with an unexpected response.
     #[display("the request to GitHub failed")]
     #[serde(rename = "github_unavailable")]
-    #[status(BAD_GATEWAY)]
-    GitHubUnavailable,
+    GitHubUnavailable(status::BadGateway),
     Internal(error::Internal),
 }
 
@@ -113,5 +110,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = Json<Request>;
     type Response = Ok<Json<Response>>;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }

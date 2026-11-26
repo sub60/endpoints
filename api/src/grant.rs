@@ -96,6 +96,25 @@ pub struct InvalidGrantPermissions {
     pub invalid: Vec<Permission>,
 }
 
-impl sub60_endpoints_common::Error for InvalidGrantPermissions {
+/// The grant a principal already has on a target.
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+pub struct ExistingGrant {
+    pub grant_id: GrantId,
+}
+
+impl sub60_endpoints_common::response::Status for ExistingGrant {
+    const STATUS: StatusCode = StatusCode::CONFLICT;
+}
+
+impl sub60_endpoints_common::response::Status for InvalidGrantPermissions {
     const STATUS: StatusCode = StatusCode::BAD_REQUEST;
 }

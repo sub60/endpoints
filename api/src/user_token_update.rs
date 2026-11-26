@@ -4,8 +4,8 @@
 
 use http::Method;
 use sub60_endpoints_common::body::{Json, WithMessage};
-use sub60_endpoints_common::response::Ok;
-use sub60_endpoints_common::{PathParams, error};
+use sub60_endpoints_common::response::{Ok, WithStatusOf};
+use sub60_endpoints_common::{PathParams, error, status};
 
 use crate::{Expiration, UserToken, UserTokenId};
 
@@ -42,7 +42,7 @@ pub struct Request {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
@@ -50,8 +50,7 @@ pub enum Error {
     NotFound(error::NotFound),
     /// The request's `expires_at` is in the past.
     #[display("the token's expiration time is in the past")]
-    #[status(BAD_REQUEST)]
-    ExpiresInThePast,
+    ExpiresInThePast(status::BadRequest),
     Internal(error::Internal),
 }
 
@@ -61,5 +60,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = Json<Request>;
     type Response = Ok<Json<UserToken>>;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }

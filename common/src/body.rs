@@ -5,11 +5,8 @@ use core::marker::PhantomData;
 use core::{any, fmt};
 
 use bytes::BufMut;
-use http::StatusCode;
 use schemars::{JsonSchema, Schema, SchemaGenerator};
 use serde_json::{Map, Value};
-
-use crate::response::{Response, ResponseVisitor, VariantVisitor};
 
 /// The body of a request or response.
 pub trait Body {
@@ -28,7 +25,7 @@ pub trait Encode: Body {
 }
 
 pub trait Decode: Body + Sized {
-    type Error: fmt::Display;
+    type Error: core::error::Error + Send + Sync + 'static;
 
     /// Decodes the body from `bytes`.
     fn decode(bytes: &[u8]) -> Result<Self, Self::Error>;
@@ -60,31 +57,25 @@ pub struct WithMessage<T>(pub T);
 #[display("expected an empty body")]
 pub struct NonEmptyBodyError;
 
-struct Variant<Enum, const I: usize>(PhantomData<Enum>);
+#[doc(hidden)]
+pub struct Variant<B, const I: usize>(PhantomData<B>);
 
-struct VariantBodies<'a, E, V> {
-    visitor: &'a mut V,
-    error: PhantomData<E>,
-}
-
-struct WithBody<'a, B, V> {
-    visitor: &'a mut V,
-    body: PhantomData<B>,
-}
-
-impl<E: Response + JsonSchema> Response for Json<WithMessage<E>> {
-    #[inline]
-    fn status(&self) -> StatusCode {
-        self.0.0.status()
+/// Returns whether the `Content-Type` in `headers` is `media_type`, ignoring
+/// parameters like `charset`.
+pub(crate) fn has_media_type(
+    headers: &http::HeaderMap,
+    media_type: &str,
+) -> bool {
+    fn essence(media_type: &str) -> &str {
+        media_type.split(';').next().unwrap_or_default().trim()
     }
 
-    #[inline]
-    fn visit<V: ResponseVisitor>(visitor: &mut V) {
-        E::visit_variants(&mut VariantBodies::<E, V> {
-            visitor,
-            error: PhantomData,
-        });
-    }
+    headers
+        .get(http::header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|value| {
+            essence(value).eq_ignore_ascii_case(essence(media_type))
+        })
 }
 
 impl<T: fmt::Display + serde::Serialize> serde::Serialize for WithMessage<T> {
@@ -174,64 +165,6 @@ impl<T: JsonSchema> JsonSchema for WithMessage<T> {
     }
 }
 
-impl<E: JsonSchema, const I: usize> JsonSchema for Variant<E, I> {
-    #[inline]
-    fn inline_schema() -> bool {
-        true
-    }
-
-    #[inline]
-    fn schema_id() -> Cow<'static, str> {
-        any::type_name::<Self>().into()
-    }
-
-    #[inline]
-    fn schema_name() -> Cow<'static, str> {
-        format!("{}Variant{I}", E::schema_name()).into()
-    }
-
-    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
-        let schema = E::json_schema(generator);
-
-        schema
-            .get("oneOf")
-            .and_then(|variants| variants.get(I))
-            .cloned()
-            .and_then(|variant| variant.try_into().ok())
-            .unwrap_or_else(|| {
-                panic!(
-                    "the schema of `{}` has no variant {I}",
-                    any::type_name::<E>(),
-                )
-            })
-    }
-}
-
-impl<E, V> VariantVisitor for VariantBodies<'_, E, V>
-where
-    E: JsonSchema,
-    V: ResponseVisitor,
-{
-    #[inline]
-    fn visit<T: Response, const I: usize>(&mut self) {
-        T::visit(&mut WithBody::<Json<WithMessage<Variant<E, I>>>, V> {
-            visitor: self.visitor,
-            body: PhantomData,
-        });
-    }
-}
-
-impl<B: Body, V: ResponseVisitor> ResponseVisitor for WithBody<'_, B, V> {
-    #[inline]
-    fn visit<Ignored: Body>(
-        &mut self,
-        status: StatusCode,
-        description: Option<&'static str>,
-    ) {
-        self.visitor.visit::<B>(status, description);
-    }
-}
-
 impl Body for () {
     const MEDIA_TYPE: Option<&'static str> = None;
 
@@ -247,6 +180,24 @@ impl<T: JsonSchema> Body for Json<T> {
     #[inline]
     fn schema(generator: &mut SchemaGenerator) -> Schema {
         generator.subschema_for::<T>()
+    }
+}
+
+impl<B: Body, const I: usize> Body for Variant<B, I> {
+    const MEDIA_TYPE: Option<&'static str> = B::MEDIA_TYPE;
+
+    fn schema(generator: &mut SchemaGenerator) -> Schema {
+        B::schema(generator)
+            .get("oneOf")
+            .and_then(|variants| variants.get(I))
+            .cloned()
+            .and_then(|variant| variant.try_into().ok())
+            .unwrap_or_else(|| {
+                panic!(
+                    "the schema of `{}` has no variant {I}",
+                    any::type_name::<B>(),
+                )
+            })
     }
 }
 

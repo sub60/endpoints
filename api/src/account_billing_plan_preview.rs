@@ -5,8 +5,8 @@
 use http::Method;
 use sub60_endpoints_common::body::{Json, WithMessage};
 use sub60_endpoints_common::request::WithQuery;
-use sub60_endpoints_common::response::Ok;
-use sub60_endpoints_common::{PathParams, error};
+use sub60_endpoints_common::response::{Ok, WithStatusOf};
+use sub60_endpoints_common::{PathParams, error, status};
 
 use crate::{AccountId, Money, PaidPlan};
 
@@ -57,7 +57,7 @@ pub struct Response {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
@@ -67,8 +67,7 @@ pub enum Error {
     /// The account's subscription is past due, and its debt has to be paid
     /// before its plan can change.
     #[display("the account's subscription is past due")]
-    #[status(CONFLICT)]
-    PastDue,
+    PastDue(status::Conflict),
     Internal(error::Internal),
 }
 
@@ -78,5 +77,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = WithQuery<Query>;
     type Response = Ok<Json<Response>>;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }

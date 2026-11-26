@@ -15,12 +15,7 @@ pub type Path = narinfo_get::Path;
 pub struct Endpoint;
 
 #[derive(
-    Debug,
-    Copy,
-    Clone,
-    PartialEq,
-    Eq,
-    sub60_endpoints_common::response::Response,
+    Debug, Copy, Clone, PartialEq, Eq, sub60_endpoints_common::Alternatives,
 )]
 pub enum Response {
     /// The NARInfo was stored.

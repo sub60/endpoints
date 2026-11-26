@@ -7,8 +7,8 @@
 
 use http::{Method, StatusCode};
 use nix_types::NarFileName;
-use sub60_endpoints_common::PathParams;
 use sub60_endpoints_common::response::{NotFound, Ok};
+use sub60_endpoints_common::{Alternatives, PathParams};
 
 use crate::{CachePath, NarBody};
 
@@ -27,14 +27,11 @@ pub struct Path {
     pub nar_file_name: NarFileName,
 }
 
-#[derive(
-    Debug,
-    Copy,
-    Clone,
-    PartialEq,
-    Eq,
-    sub60_endpoints_common::response::Response,
-)]
+/// The responses of the endpoint.
+///
+/// A NAR is streamed, so the server builds the `Found` response itself instead
+/// of encoding it.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Alternatives)]
 pub enum Response {
     /// The NAR exists, and it's in the response's body.
     Found(Ok<NarBody>),

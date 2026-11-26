@@ -7,9 +7,9 @@ use std::io::Write as _;
 use bytes::BufMut;
 use http::{Method, StatusCode};
 use nix_types::{NarInfo, NarInfoFileName};
-use sub60_endpoints_common::PathParams;
 use sub60_endpoints_common::body::{Body, Encode};
 use sub60_endpoints_common::response::{NotFound, Ok};
+use sub60_endpoints_common::{Alternatives, PathParams};
 
 use crate::CachePath;
 
@@ -28,7 +28,8 @@ pub struct Path {
     pub narinfo_file_name: NarInfoFileName,
 }
 
-#[derive(Debug, PartialEq, Eq, sub60_endpoints_common::response::Response)]
+/// The responses of the endpoint.
+#[derive(Debug, PartialEq, Eq, Alternatives)]
 #[expect(clippy::large_enum_variant)]
 pub enum Response {
     /// The NARInfo, signed with the cache's key.

@@ -4,8 +4,8 @@
 
 use http::Method;
 use sub60_endpoints_common::body::{Json, WithMessage};
-use sub60_endpoints_common::response::Ok;
-use sub60_endpoints_common::{PathParams, Permission, error};
+use sub60_endpoints_common::response::{Ok, WithStatusOf};
+use sub60_endpoints_common::{PathParams, Permission, error, status};
 
 use crate::{CiJobs, Grant, GrantId, InvalidGrantPermissions};
 
@@ -42,7 +42,7 @@ pub struct Request {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
@@ -56,13 +56,11 @@ pub enum Error {
         "the request has `ci_jobs`, but the grant is to a user or a machine \
          token, not to CI jobs"
     )]
-    #[status(BAD_REQUEST)]
-    NotACiJobGrant,
+    NotACiJobGrant(status::BadRequest),
     /// The grant is the only one giving an org's owner every permission, and
     /// the request takes some away.
     #[display("the change would leave the org without an owner")]
-    #[status(CONFLICT)]
-    LastOwner,
+    LastOwner(status::Conflict),
     Internal(error::Internal),
 }
 
@@ -72,5 +70,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = Json<Request>;
     type Response = Ok<Json<Grant>>;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }

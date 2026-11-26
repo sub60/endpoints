@@ -4,12 +4,12 @@
 
 use http::Method;
 use sub60_endpoints_common::body::{Json, WithMessage};
-use sub60_endpoints_common::response::Created;
-use sub60_endpoints_common::{Permission, error};
+use sub60_endpoints_common::response::{Created, WithStatusOf};
+use sub60_endpoints_common::{Permission, error, status};
 
 use crate::{
+    ExistingGrant,
     Grant,
-    GrantId,
     InvalidGrantPermissions,
     Principal,
     cache_grant_list,
@@ -41,7 +41,7 @@ pub struct Request {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
@@ -51,18 +51,14 @@ pub enum Error {
     NotFound(error::NotFound),
     /// The user principal's [`id`](Principal::User::id) is an org.
     #[display("the user principal's ID is an org's, not a personal account's")]
-    #[status(BAD_REQUEST)]
-    NotAPersonalAccount,
+    NotAPersonalAccount(status::BadRequest),
     InvalidPermissions(InvalidGrantPermissions),
     /// The user or machine token already has a grant on the cache.
     #[display(
         "the principal already has a grant on the cache, so it can't get a \
          second one"
     )]
-    #[status(CONFLICT)]
-    Conflict {
-        grant_id: GrantId,
-    },
+    Conflict(ExistingGrant),
     Internal(error::Internal),
 }
 
@@ -72,5 +68,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = Json<Request>;
     type Response = Created<Json<Grant>>;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }

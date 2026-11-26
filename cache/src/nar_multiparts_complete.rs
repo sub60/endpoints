@@ -27,9 +27,7 @@ pub struct Path<Id = UploadId> {
     pub upload_id: Id,
 }
 
-#[derive(
-    Debug, Clone, PartialEq, Eq, sub60_endpoints_common::response::Response,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, sub60_endpoints_common::Alternatives)]
 pub enum Response {
     /// The NAR was stored.
     Created(Created<Json<ResponseBody>>),

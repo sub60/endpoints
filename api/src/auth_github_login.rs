@@ -4,9 +4,9 @@
 //! URL of GitHub's page asking the person to authorize sub60.
 
 use http::Method;
-use sub60_endpoints_common::PathParams;
 use sub60_endpoints_common::body::{Json, WithMessage};
-use sub60_endpoints_common::response::Ok;
+use sub60_endpoints_common::response::{Ok, WithStatusOf};
+use sub60_endpoints_common::{PathParams, status};
 use url::Url;
 
 #[derive(Debug, Copy, Clone)]
@@ -68,14 +68,13 @@ pub struct Response {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
     /// The redirect URL's scheme isn't `http` or `https`.
     #[display("the redirect URL isn't an HTTP(S) URL")]
-    #[status(BAD_REQUEST)]
-    InvalidRedirectUrl,
+    InvalidRedirectUrl(status::BadRequest),
 }
 
 impl sub60_endpoints_common::Endpoint for Endpoint {
@@ -84,5 +83,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = Json<Request>;
     type Response = Ok<Json<Response>>;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }

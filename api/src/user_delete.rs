@@ -3,10 +3,10 @@
 //! Deletes the user the request's token acts as, along with their personal
 //! account and its caches.
 
-use http::Method;
+use http::{Method, StatusCode};
 use sub60_endpoints_common::body::{Json, WithMessage};
 use sub60_endpoints_common::error;
-use sub60_endpoints_common::response::NoContent;
+use sub60_endpoints_common::response::{NoContent, Status, WithStatusOf};
 
 use crate::{AccountSummary, user_get};
 
@@ -21,20 +21,30 @@ pub struct Endpoint;
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
     Unauthorized(error::Unauthorized),
     /// The user is the only owner of some org accounts. Deleting the user would
     /// leave those accounts without an owner.
-    #[display("the user is the only owner of {} org accounts", accounts.len())]
-    #[status(CONFLICT)]
-    LastOwner {
-        /// The org accounts the user is the only owner of.
-        accounts: Vec<AccountSummary>,
-    },
+    #[display("the user is the only owner of {} org accounts", _0.accounts.len())]
+    LastOwner(OwnedAccounts),
     Internal(error::Internal),
+}
+
+/// The org accounts a user is the only owner of.
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+pub struct OwnedAccounts {
+    pub accounts: Vec<AccountSummary>,
 }
 
 impl sub60_endpoints_common::Endpoint for Endpoint {
@@ -43,5 +53,9 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = ();
     type Response = NoContent;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
+}
+
+impl Status for OwnedAccounts {
+    const STATUS: StatusCode = StatusCode::CONFLICT;
 }

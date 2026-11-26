@@ -4,8 +4,8 @@
 
 use http::Method;
 use sub60_endpoints_common::body::{Json, WithMessage};
-use sub60_endpoints_common::error;
-use sub60_endpoints_common::response::NoContent;
+use sub60_endpoints_common::response::{NoContent, WithStatusOf};
+use sub60_endpoints_common::{error, status};
 
 use crate::grant_update;
 
@@ -20,7 +20,7 @@ pub struct Endpoint;
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
@@ -29,8 +29,7 @@ pub enum Error {
     NotFound(error::NotFound),
     /// The grant is the only one giving an org's owner every permission.
     #[display("removing the grant would leave the org without an owner")]
-    #[status(CONFLICT)]
-    LastOwner,
+    LastOwner(status::Conflict),
     Internal(error::Internal),
 }
 
@@ -40,5 +39,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = ();
     type Response = NoContent;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }

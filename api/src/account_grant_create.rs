@@ -4,10 +4,10 @@
 
 use http::Method;
 use sub60_endpoints_common::body::{Json, WithMessage};
-use sub60_endpoints_common::response::Created;
-use sub60_endpoints_common::{Permission, error};
+use sub60_endpoints_common::response::{Created, WithStatusOf};
+use sub60_endpoints_common::{Permission, error, status};
 
-use crate::{Grant, GrantId, Principal, account_grant_list};
+use crate::{ExistingGrant, Grant, Principal, account_grant_list};
 
 pub type Path = account_grant_list::Path;
 
@@ -35,7 +35,7 @@ pub struct Request {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
@@ -45,20 +45,15 @@ pub enum Error {
     NotFound(error::NotFound),
     /// The user principal's [`id`](Principal::User::id) is an org.
     #[display("the user principal's ID is an org's, not a personal account's")]
-    #[status(BAD_REQUEST)]
-    NotAPersonalAccount,
+    NotAPersonalAccount(status::BadRequest),
     #[display("the principal is CI jobs, which can't have grants on accounts")]
-    #[status(BAD_REQUEST)]
-    CiJobGrantOnAccount,
+    CiJobGrantOnAccount(status::BadRequest),
     /// The principal already has a grant on the account.
     #[display(
         "the principal already has a grant on the account, so it can't get a \
          second one"
     )]
-    #[status(CONFLICT)]
-    Conflict {
-        grant_id: GrantId,
-    },
+    Conflict(ExistingGrant),
     Internal(error::Internal),
 }
 
@@ -68,5 +63,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = Json<Request>;
     type Response = Created<Json<Grant>>;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }

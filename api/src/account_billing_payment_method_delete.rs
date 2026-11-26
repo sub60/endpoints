@@ -4,8 +4,8 @@
 
 use http::Method;
 use sub60_endpoints_common::body::{Json, WithMessage};
-use sub60_endpoints_common::error;
-use sub60_endpoints_common::response::NoContent;
+use sub60_endpoints_common::response::{NoContent, WithStatusOf};
+use sub60_endpoints_common::{error, status};
 
 use crate::account_billing_payment_method_update;
 
@@ -20,7 +20,7 @@ pub struct Endpoint;
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
@@ -32,8 +32,7 @@ pub enum Error {
         "the account has an active subscription that will charge the payment \
          method again"
     )]
-    #[status(CONFLICT)]
-    PaymentMethodInUse,
+    PaymentMethodInUse(status::Conflict),
     Internal(error::Internal),
 }
 
@@ -43,5 +42,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = ();
     type Response = NoContent;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }

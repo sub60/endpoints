@@ -1,16 +1,15 @@
 //! Compatibility with axum.
 
-use core::fmt;
-
 use ::axum::extract::rejection::RawPathParamsRejection;
 use ::axum::extract::{FromRequestParts, RawPathParams};
 use ::axum::response::{IntoResponse, Response};
 use http::request::Parts;
 use http::{HeaderValue, StatusCode, header};
 
-use crate::body::Encode;
-use crate::response::WithStatus;
-use crate::{PathParams, PathParamsError, request};
+use crate::body::{Json, WithMessage};
+use crate::error::{self, RequestError};
+use crate::response::WithStatusOf;
+use crate::{PathParams, PathParamsError, body, request, response};
 
 /// The rejection returned when [`PathParams`] can't be extracted from a
 /// request.
@@ -24,6 +23,9 @@ pub enum PathParamsRejection {
     #[display("{_0}")]
     Parse(PathParamsError),
 }
+
+/// A [`response::Encoder`] into an axum response.
+struct IntoAxum;
 
 /// Extracts the path parameters of a request, for the `FromRequestParts` impls
 /// the derive macro expands to.
@@ -39,52 +41,56 @@ pub async fn from_request_parts<T: PathParams, S: Send + Sync>(
     T::parse(&mut params.iter()).map_err(PathParamsRejection::Parse)
 }
 
-impl<E: fmt::Display> IntoResponse for request::DecodeError<E> {
+/// Returns the axum response holding `response`.
+pub fn into_response(response: &impl response::Encode) -> Response {
+    response.encode(IntoAxum)
+}
+
+impl IntoResponse for RequestError {
     #[inline]
     fn into_response(self) -> Response {
-        let status = match &self {
-            Self::MediaType { .. } => StatusCode::UNSUPPORTED_MEDIA_TYPE,
-            Self::Query(_) | Self::Body(_) => StatusCode::BAD_REQUEST,
-        };
+        into_response(&WithStatusOf(Json(WithMessage(self))))
+    }
+}
 
-        (status, self.to_string()).into_response()
+impl<E> IntoResponse for request::DecodeError<E> {
+    #[inline]
+    fn into_response(self) -> Response {
+        RequestError::from(self).into_response()
     }
 }
 
 impl IntoResponse for PathParamsError {
+    #[inline]
     fn into_response(self) -> Response {
-        let status = match self {
-            Self::Invalid { .. } => StatusCode::BAD_REQUEST,
-            // The route's template and the parameters disagree, which is a
-            // bug on the server.
-            Self::Missing(_) | Self::UnexpectedName { .. } => {
-                StatusCode::INTERNAL_SERVER_ERROR
-            },
-        };
-
-        (status, self.to_string()).into_response()
+        RequestError::from(self).into_response()
     }
 }
 
 impl IntoResponse for PathParamsRejection {
     fn into_response(self) -> Response {
         match self {
-            Self::Raw(rejection) => rejection.into_response(),
+            Self::Raw(rejection) if rejection.status().is_server_error() => {
+                RequestError::Internal(error::Internal).into_response()
+            },
+            Self::Raw(_) => RequestError::InvalidRequest(error::InvalidRequest)
+                .into_response(),
             Self::Parse(err) => err.into_response(),
         }
     }
 }
 
-impl<const S: u16, B: Encode> IntoResponse for WithStatus<S, B> {
-    #[inline]
-    fn into_response(self) -> Response {
-        let mut body = bytes::BytesMut::new();
-        self.0.encode(&mut body);
+impl response::Encoder for IntoAxum {
+    type Output = Response;
+
+    fn encode<B: body::Encode>(self, status: StatusCode, body: &B) -> Response {
+        let mut bytes = bytes::BytesMut::new();
+        body.encode(&mut bytes);
 
         let mut response =
-            Response::new(::axum::body::Body::from(body.freeze()));
+            Response::new(::axum::body::Body::from(bytes.freeze()));
 
-        *response.status_mut() = Self::STATUS;
+        *response.status_mut() = status;
 
         if let Some(media_type) = B::MEDIA_TYPE {
             response.headers_mut().insert(

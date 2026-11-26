@@ -84,7 +84,8 @@ pub mod __private {
     use super::*;
     #[cfg(feature = "axum")]
     pub use crate::axum::from_request_parts;
-    pub use crate::response::{VariantVisitor, WithDescription};
+    pub use crate::body::Variant;
+    pub use crate::response::{Borrowed, Described, Descriptions};
 
     /// The characters that get percent-encoded in a path parameter, i.e. all
     /// of them but the unreserved ones.

@@ -4,7 +4,7 @@
 
 use http::Method;
 use sub60_endpoints_common::body::{Json, WithMessage};
-use sub60_endpoints_common::response::Ok;
+use sub60_endpoints_common::response::{Ok, WithStatusOf};
 use sub60_endpoints_common::{PathParams, Timestamp, error};
 
 use crate::AccountId;
@@ -55,7 +55,7 @@ pub struct CachesUsage {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
@@ -71,5 +71,5 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = ();
     type Response = Ok<Json<Response>>;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }

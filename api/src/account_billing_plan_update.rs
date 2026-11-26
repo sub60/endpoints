@@ -4,10 +4,10 @@
 
 use http::Method;
 use sub60_endpoints_common::body::{Json, WithMessage};
-use sub60_endpoints_common::response::{Accepted, Ok};
-use sub60_endpoints_common::{PathParams, error};
+use sub60_endpoints_common::response::{Accepted, Ok, WithStatusOf};
+use sub60_endpoints_common::{PathParams, error, status};
 
-use crate::{AccountId, Billing, ChargeConfirmation, PaidPlan};
+use crate::{AccountId, Billing, ChargeConfirmation, DeclinedCharge, PaidPlan};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Endpoint;
@@ -36,9 +36,7 @@ pub struct Request {
     pub plan: Option<PaidPlan>,
 }
 
-#[derive(
-    Debug, Clone, PartialEq, Eq, sub60_endpoints_common::response::Response,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, sub60_endpoints_common::Alternatives)]
 #[expect(clippy::large_enum_variant)]
 pub enum Response {
     /// The plan was changed, or its change was scheduled for the next period,
@@ -55,7 +53,7 @@ pub enum Response {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    sub60_endpoints_common::response::Response,
+    sub60_endpoints_common::Statuses,
 )]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum Error {
@@ -65,14 +63,10 @@ pub enum Error {
     /// The account has unpaid invoices that need to be settled before its plan
     /// can change.
     #[display("the account's subscription is past due")]
-    #[status(CONFLICT)]
-    PastDue,
+    PastDue(status::Conflict),
     /// The charge was declined.
-    #[display("the payment failed: {reason}")]
-    #[status(PAYMENT_REQUIRED)]
-    PaymentFailed {
-        reason: String,
-    },
+    #[display("the payment failed: {}", _0.reason)]
+    PaymentFailed(DeclinedCharge),
     Internal(error::Internal),
 }
 
@@ -82,7 +76,7 @@ impl sub60_endpoints_common::Endpoint for Endpoint {
     type Path = Path;
     type Request = Json<Request>;
     type Response = Response;
-    type Error = Json<WithMessage<Error>>;
+    type Error = WithStatusOf<Json<WithMessage<Error>>>;
 }
 
 #[cfg(test)]

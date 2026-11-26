@@ -1,6 +1,8 @@
 use core::ops::Range;
 
+use http::StatusCode;
 use sub60_endpoints_common::Timestamp;
+use sub60_endpoints_common::response::Status;
 use url::Url;
 
 use crate::InvoiceId;
@@ -204,4 +206,22 @@ pub struct ChargeConfirmation {
     /// The client secret of the Stripe PaymentIntent the charge is confirmed
     /// with.
     pub client_secret: String,
+}
+
+/// A charge the customer's payment method declined.
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+pub struct DeclinedCharge {
+    pub reason: String,
+}
+
+impl Status for DeclinedCharge {
+    const STATUS: StatusCode = StatusCode::PAYMENT_REQUIRED;
 }

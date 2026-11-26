@@ -11,7 +11,11 @@ use serde_json::{Map, Value, json};
 use sub60_endpoints_common::body::{Body, Json, WithMessage};
 use sub60_endpoints_common::error::RequestError;
 use sub60_endpoints_common::request::Request;
-use sub60_endpoints_common::response::{Response, ResponseVisitor};
+use sub60_endpoints_common::response::{
+    Response,
+    ResponseVisitor,
+    WithStatusOf,
+};
 use sub60_endpoints_common::{Endpoint, EndpointVisitor, PathParams};
 
 const DOMAINS: &[Domain] = &[Domain {
@@ -133,6 +137,7 @@ impl OpenApiBuilder {
 }
 
 impl EndpointVisitor for OpenApiBuilder {
+    #[expect(clippy::too_many_lines)]
     fn visit<E: Endpoint>(&mut self) {
         let mut operation = Map::new();
 
@@ -183,7 +188,9 @@ impl EndpointVisitor for OpenApiBuilder {
             schemas: Vec::new(),
         };
 
-        Json::<WithMessage<RequestError>>::visit(&mut request_errors);
+        WithStatusOf::<Json<WithMessage<RequestError>>>::visit(
+            &mut request_errors,
+        );
 
         let mut failure = json!({
             "description": "The request failed before reaching the endpoint.",

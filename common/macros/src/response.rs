@@ -1,198 +1,154 @@
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{Data, DeriveInput, Fields, parse_quote};
+use syn::{Data, DeriveInput, Fields};
 
 #[expect(clippy::too_many_lines)]
 pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
-    let krate = quote!(::sub60_endpoints_common);
-
     let Data::Enum(data) = &input.data else {
         return Err(syn::Error::new(
             Span::call_site(),
-            "`Response` can only be derived for enums",
+            "`Alternatives` can only be derived for enums",
         ));
     };
 
     if data.variants.is_empty() {
         return Err(syn::Error::new(
             Span::call_site(),
-            "`Response` can't be derived for an enum without variants",
+            "`Alternatives` can't be derived for an enum without variants",
         ));
     }
 
-    let mut types = Vec::<syn::Type>::new();
-    let mut arms = Vec::new();
-    let mut visits = Vec::new();
-    let mut into_response_arms = Vec::new();
+    let krate = quote!(::sub60_endpoints_common);
 
-    let mut held_types = Vec::new();
+    let count = data.variants.len();
 
-    for variant in &data.variants {
+    let mut owned_types = Vec::new();
+    let mut borrowed_types = Vec::new();
+    let mut as_arms = Vec::new();
+    let mut from_arms = Vec::new();
+    let mut descriptions = Vec::new();
+
+    for (index, variant) in data.variants.iter().enumerate() {
         let ident = &variant.ident;
 
-        let mut statuses =
-            variant.attrs.iter().filter(|attr| attr.path().is_ident("status"));
-
-        let status = statuses.next();
-
-        if let Some(attr) = statuses.next() {
-            return Err(syn::Error::new_spanned(
-                attr,
-                "a variant can only have one `#[status(..)]`",
-            ));
-        }
-
-        match (&variant.fields, status) {
-            (Fields::Unnamed(fields), None) if fields.unnamed.len() == 1 => {
-                types.push(fields.unnamed[0].ty.clone());
-                held_types.push(fields.unnamed[0].ty.clone());
-                arms.push(quote! {
-                    Self::#ident(response) => {
-                        #krate::response::Response::status(response)
-                    }
-                });
-                into_response_arms.push(quote! {
-                    Self::#ident(response) => {
-                        #krate::__private::axum::response::IntoResponse
-                            ::into_response(response)
-                    }
-                });
+        let ty = match &variant.fields {
+            Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
+                &fields.unnamed[0].ty
             },
-            (Fields::Unnamed(fields), Some(attr))
-                if fields.unnamed.len() == 1 =>
-            {
-                return Err(syn::Error::new_spanned(
-                    attr,
-                    "a variant holding a type takes its status code from the \
-                     type",
-                ));
-            },
-            (_, Some(attr)) => {
-                let status = attr.parse_args::<syn::Ident>()?;
-                let status = quote!(#krate::__private::StatusCode::#status);
-                let ty: syn::Type = parse_quote! {
-                    #krate::response::WithStatus<{ #status.as_u16() }>
-                };
-                arms.push(quote!(Self::#ident { .. } => #status));
-                into_response_arms.push(quote! {
-                    Self::#ident { .. } => {
-                        <#ty as #krate::__private::axum::response::IntoResponse>
-                            ::into_response(#krate::response::WithStatus(()))
-                    }
-                });
-                types.push(ty);
-            },
-            (_, None) => {
+            _ => {
                 return Err(syn::Error::new_spanned(
                     variant,
-                    "each variant must either hold a single type implementing \
-                     `Response`, e.g. `Found(Ok<NarBody>)`, or have a \
-                     `#[status(..)]`, e.g. `#[status(CONFLICT)]`",
+                    "each variant must hold a single type implementing \
+                     `Response`, e.g. `Found(Ok<NarBody>)`",
                 ));
             },
-        }
+        };
 
-        let ty = types.last().expect("the variant's type was just pushed");
+        let description = doc(&variant.attrs);
 
-        visits.push(match doc(&variant.attrs) {
-            Some(description) => quote! {
-                <#ty as #krate::response::Response>::visit(
-                    &mut #krate::__private::WithDescription {
-                        visitor: &mut *visitor,
-                        description: #description,
-                    },
-                );
+        let (owned, pattern) = match &description {
+            Some(_) => (
+                quote!(#krate::__private::Described<Self, #index, #ty>),
+                quote!(#krate::__private::Described(response, _)),
+            ),
+            None => (quote!(#ty), quote!(response)),
+        };
+
+        let as_alternative = nest(
+            index,
+            count,
+            quote!(#krate::__private::Borrowed(response)),
+            &krate,
+        );
+
+        let pattern = nest(index, count, pattern, &krate);
+
+        owned_types.push(owned);
+        borrowed_types.push(quote!(#krate::__private::Borrowed<'__a, #ty>));
+        as_arms.push(quote!(Self::#ident(response) => #as_alternative));
+        from_arms.push(quote!(#pattern => Self::#ident(response)));
+        descriptions.push(match description {
+            Some(description) => {
+                quote!(::core::option::Option::Some(#description))
             },
-            None => {
-                quote!(<#ty as #krate::response::Response>::visit(visitor);)
-            },
+            None => quote!(::core::option::Option::None),
         });
     }
 
     let name = &input.ident;
-    let mut generics = input.generics.clone();
-
-    if !generics.params.is_empty() {
-        let where_clause = generics.make_where_clause();
-        for ty in &types {
-            where_clause
-                .predicates
-                .push(parse_quote!(#ty: #krate::response::Response));
-        }
-    }
-
-    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-
-    let indices = 0..types.len();
-
-    let into_response_impl = if cfg!(feature = "axum") {
-        let mut generics = input.generics.clone();
-        let where_clause = generics.make_where_clause();
-
-        // The bounds are higher-ranked because a bound on a concrete type that
-        // doesn't hold is a compile error, and the types held by an error
-        // enum's variants often don't implement `IntoResponse`.
-        for ty in &held_types {
-            where_clause.predicates.push(parse_quote! {
-                for<'__r> #ty: #krate::__private::axum::response::IntoResponse
-            });
-        }
-
-        let (impl_generics, ty_generics, where_clause) =
-            generics.split_for_impl();
-
-        quote! {
-            impl #impl_generics #krate::__private::axum::response::IntoResponse
-                for #name #ty_generics
-                #where_clause
-            {
-                #[inline]
-                fn into_response(
-                    self,
-                ) -> #krate::__private::axum::response::Response {
-                    match self {
-                        #(#into_response_arms,)*
-                    }
-                }
-            }
-        }
-    } else {
-        TokenStream::new()
-    };
+    let (impl_generics, ty_generics, where_clause) =
+        input.generics.split_for_impl();
+    let owned = either(owned_types, &krate);
+    let borrowed = either(borrowed_types, &krate);
 
     Ok(quote! {
-        #into_response_impl
-
-        impl #impl_generics #krate::response::Response for #name #ty_generics
+        impl #impl_generics #krate::response::Alternatives
+            for #name #ty_generics
             #where_clause
         {
+            type Owned = #owned;
+
+            type Ref<'__a> = #borrowed
+            where
+                Self: '__a;
+
             #[inline]
-            fn status(&self) -> #krate::__private::StatusCode {
+            fn as_alternative(&self) -> Self::Ref<'_> {
                 match self {
-                    #(#arms,)*
+                    #(#as_arms,)*
                 }
             }
 
             #[inline]
-            fn visit<V: #krate::response::ResponseVisitor>(visitor: &mut V) {
-                #(#visits)*
+            fn from_alternative(alternative: Self::Owned) -> Self {
+                match alternative {
+                    #(#from_arms,)*
+                }
             }
+        }
 
-            #[inline]
-            fn visit_variants<V: #krate::__private::VariantVisitor>(
-                visitor: &mut V,
-            ) {
-                #(#krate::__private::VariantVisitor::visit::<
-                    #types,
-                    #indices,
-                >(visitor);)*
-            }
+        impl #impl_generics #krate::__private::Descriptions
+            for #name #ty_generics
+            #where_clause
+        {
+            const DESCRIPTIONS: &'static [
+                ::core::option::Option<&'static str>
+            ] = &[#(#descriptions),*];
         }
     })
 }
 
+/// Returns the type of the alternatives `types`, nested to the right in
+/// `Either`s.
+fn either(types: Vec<TokenStream>, krate: &TokenStream) -> TokenStream {
+    let mut types = types.into_iter().rev();
+    let last = types.next().expect("the enum has variants");
+    types
+        .fold(last, |nested, ty| quote!(#krate::response::Either<#ty, #nested>))
+}
+
+/// Returns the expression, or the pattern, of `inner` as the `index`th of
+/// `count` alternatives nested to the right in `Either`s.
+fn nest(
+    index: usize,
+    count: usize,
+    inner: TokenStream,
+    krate: &TokenStream,
+) -> TokenStream {
+    let either = quote!(#krate::response::Either);
+
+    let mut nested =
+        if index + 1 < count { quote!(#either::Left(#inner)) } else { inner };
+
+    for _ in 0..index {
+        nested = quote!(#either::Right(#nested));
+    }
+
+    nested
+}
+
 /// Returns the text of the doc comment in `attrs`, or `None` if there's none.
-fn doc(attrs: &[syn::Attribute]) -> Option<String> {
+pub(crate) fn doc(attrs: &[syn::Attribute]) -> Option<String> {
     let mut lines = Vec::new();
 
     for attr in attrs.iter().filter(|attr| attr.path().is_ident("doc")) {
