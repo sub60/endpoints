@@ -29,6 +29,7 @@ pub struct Path;
 pub struct Request {
     pub name: AccountName,
     pub kind: AccountKind,
+    pub billing_email: String,
 }
 
 #[derive(

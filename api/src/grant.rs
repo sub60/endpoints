@@ -50,11 +50,10 @@ pub enum Principal {
 #[serde(tag = "host", rename_all = "snake_case")]
 pub enum CiJobs {
     GithubActions {
-        owner: String,
-        /// The repo's name without its owner's. `None` matches all of the
-        /// owner's repos.
+        owner_id: u64,
+        /// `None` matches all of the owner's repos.
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        repository: Option<String>,
+        repository_id: Option<u64>,
         /// The Git ref (e.g. `refs/heads/main`). `None` matches any ref.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         r#ref: Option<String>,

@@ -57,7 +57,6 @@ pub struct Response {
 
 #[derive(
     Debug,
-    Copy,
     Clone,
     PartialEq,
     Eq,
@@ -65,7 +64,7 @@ pub struct Response {
     serde::Deserialize,
     schemars::JsonSchema,
 )]
-#[serde(rename_all = "snake_case")]
+#[serde(tag = "kind", rename_all = "snake_case")]
 pub enum LoginOutcome {
     /// The user already had a personal account.
     LoggedIn,
@@ -77,7 +76,7 @@ pub enum LoginOutcome {
     /// The user's personal account couldn't be created because their GitHub
     /// handle is already another account's name, so they have to pick a name
     /// for it.
-    AccountNameTaken,
+    AccountNameTaken { github_email: String },
 }
 
 #[derive(
