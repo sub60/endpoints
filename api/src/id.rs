@@ -22,6 +22,7 @@ enum IdKind {
     UserGrant = 7,
     Invoice = 8,
     Session = 9,
+    Identity = 10,
 }
 
 /// The error returned when converting bytes that aren't an ID of the expected
@@ -144,6 +145,7 @@ macro_rules! id {
 id!(AccountId, IdKind::Account);
 id!(CacheId, IdKind::Cache);
 id!(CiJobGrantId, IdKind::CiJobGrant);
+id!(IdentityId, IdKind::Identity);
 id!(InvoiceId, IdKind::Invoice);
 id!(MachineGrantId, IdKind::MachineGrant);
 id!(MachineTokenId, IdKind::MachineToken);

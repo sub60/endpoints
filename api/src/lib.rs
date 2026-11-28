@@ -94,6 +94,7 @@ pub use id::{
     GrantId,
     IdFromBytesError,
     IdFromStrError,
+    IdentityId,
     InvoiceId,
     MachineGrantId,
     MachineTokenId,

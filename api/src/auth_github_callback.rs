@@ -93,8 +93,8 @@ pub enum Error {
     /// already used, or doesn't match the code verifier.
     #[display("GitHub refused to exchange the code")]
     InvalidCode(status::BadRequest),
-    /// The GitHub user's primary email address isn't verified.
-    #[display("the GitHub user's primary email address isn't verified")]
+    /// The GitHub user has no verified email address.
+    #[display("the GitHub user has no verified email address")]
     NoVerifiedEmail(status::Forbidden),
     /// GitHub couldn't be reached, or answered with an unexpected response.
     #[display("the request to GitHub failed")]
