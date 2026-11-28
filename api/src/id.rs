@@ -24,6 +24,12 @@ enum IdKind {
     Session = 9,
 }
 
+/// The error returned when converting bytes that aren't an ID of the expected
+/// kind.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, derive_more::Display)]
+#[display("the bytes are an ID of another kind")]
+pub struct IdFromBytesError;
+
 /// The error returned when parsing text that isn't an ID of the expected kind.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, derive_more::Display)]
 #[display("invalid ID")]
@@ -37,6 +43,25 @@ macro_rules! id {
 
         impl $name {
             const KIND: IdKind = $kind;
+
+            #[inline]
+            pub const fn from_bytes(
+                bytes: [u8; 16],
+            ) -> Result<Self, IdFromBytesError> {
+                match bytes {
+                    [kind, random @ ..] if kind == Self::KIND as u8 => {
+                        Ok(Self(random))
+                    },
+                    _ => Err(IdFromBytesError),
+                }
+            }
+
+            #[inline]
+            pub const fn to_bytes(self) -> [u8; 16] {
+                let mut bytes = [Self::KIND as u8; 16];
+                bytes.split_at_mut(1).1.copy_from_slice(&self.0);
+                bytes
+            }
         }
 
         impl fmt::Debug for $name {
@@ -251,6 +276,8 @@ fn parse_id(s: &str, kind: IdKind) -> Result<[u8; 15], IdFromStrError> {
     Ok(random)
 }
 
+impl core::error::Error for IdFromBytesError {}
+
 impl core::error::Error for IdFromStrError {}
 
 #[cfg(test)]
@@ -269,6 +296,15 @@ mod tests {
             assert!(text.starts_with('1'), "{text}");
             assert_eq!(text.parse::<AccountId>(), Ok(id), "{text}");
         }
+    }
+
+    #[test]
+    fn bytes_roundtrip() {
+        let id = AccountId(*b"0123456789abcde");
+        let bytes = id.to_bytes();
+        assert_eq!(bytes[0], 1);
+        assert_eq!(AccountId::from_bytes(bytes), Ok(id));
+        assert_eq!(UserId::from_bytes(bytes), Err(IdFromBytesError));
     }
 
     #[test]

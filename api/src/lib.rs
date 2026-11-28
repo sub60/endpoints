@@ -92,6 +92,7 @@ pub use id::{
     CacheId,
     CiJobGrantId,
     GrantId,
+    IdFromBytesError,
     IdFromStrError,
     InvoiceId,
     MachineGrantId,
